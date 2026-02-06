@@ -1,0 +1,39 @@
+{
+  "name": "우리들 / Chúng ta",
+  "short_name": "우리들",
+  "description": "베트남어-한국어 학습 & 생활비 관리 / Học tiếng Việt-Hàn & Quản lý chi phí",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fef9f4",
+  "theme_color": "#e8836d",
+  "orientation": "portrait",
+  "categories": ["education", "finance"],
+  "lang": "ko",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23e8836d' width='512' height='512' rx='100'/><text x='256' y='200' text-anchor='middle' font-size='140' fill='white' font-family='Arial' font-weight='bold'>우리</text><text x='256' y='340' text-anchor='middle' font-size='80' fill='white' font-family='Arial'>Chúng ta</text><text x='256' y='440' text-anchor='middle' font-size='100'>🇻🇳🇰🇷</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23e8836d' width='512' height='512' rx='100'/><text x='256' y='200' text-anchor='middle' font-size='140' fill='white' font-family='Arial' font-weight='bold'>우리</text><text x='256' y='340' text-anchor='middle' font-size='80' fill='white' font-family='Arial'>Chúng ta</text><text x='256' y='440' text-anchor='middle' font-size='100'>🇻🇳🇰🇷</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23e8836d' width='512' height='512' rx='0'/><text x='256' y='280' text-anchor='middle' font-size='200' fill='white' font-family='Arial' font-weight='bold'>우</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23e8836d' width='512' height='512' rx='0'/><text x='256' y='280' text-anchor='middle' font-size='200' fill='white' font-family='Arial' font-weight='bold'>우</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

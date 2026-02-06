@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>우리들 / Chúng ta</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#e8836d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <style>
+    :root {
+      --primary: #e8836d;
+      --primary-light: #ffd4cc;
+      --primary-dark: #c9624d;
+      --secondary: #ffc857;
+      --secondary-light: #fff3d4;
+      --accent: #7bc67e;
+      --accent-light: #d4f5d5;
+      --bg: #fef9f4;
+      --card: #ffffff;
+      --text: #4a3728;
+      --text-secondary: #8b7355;
+      --border: #f0e6dc;
+      --danger: #e85d5d;
+      --danger-light: #fde0e0;
+      --shadow: 0 2px 12px rgba(74,55,40,0.08);
+      --radius: 14px;
+      --nav-height: 64px;
+      --header-height: 56px;
+    }
+    [data-theme="dark"] {
+      --primary: #e8836d;
+      --primary-light: #3d2822;
+      --primary-dark: #f09d8a;
+      --secondary: #ffc857;
+      --secondary-light: #2d2815;
+      --accent: #7bc67e;
+      --accent-light: #1a2d1b;
+      --bg: #121218;
+      --card: #1e1e2a;
+      --text: #e8e0d8;
+      --text-secondary: #a09888;
+      --border: #2e2e3e;
+      --danger: #ef5350;
+      --danger-light: #2d1515;
+      --shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+    #app-header {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: var(--header-height); background: var(--primary); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; z-index: 100;
+      box-shadow: 0 2px 8px rgba(232,131,109,0.3);
+    }
+    #app-header .header-sub { font-size: 11px; font-weight: 400; opacity: 0.85; margin-top: 1px; }
+    #header-title { text-align: center; }
+    #app-content {
+      margin-top: var(--header-height); margin-bottom: var(--nav-height);
+      padding: 12px 16px 20px;
+      min-height: calc(100vh - var(--header-height) - var(--nav-height));
+    }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    #bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: var(--nav-height); background: var(--card);
+      display: flex; border-top: 1px solid var(--border); z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom, 0);
+      transition: background 0.3s;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 10px; color: var(--text-secondary); cursor: pointer;
+      transition: all 0.2s; border: none; background: none;
+    }
+    .nav-item .nav-icon { font-size: 22px; margin-bottom: 2px; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item.active .nav-icon { transform: scale(1.15); }
+    .nav-item .nav-label { font-weight: 600; }
+    .card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 16px; margin-bottom: 12px;
+      box-shadow: var(--shadow); border: 1px solid var(--border);
+      transition: transform 0.15s, background 0.3s;
+    }
+    .card:active { transform: scale(0.985); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 20px; border-radius: 10px; border: none;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:active { background: var(--primary-dark); }
+    .btn-secondary { background: var(--secondary-light); color: var(--text); }
+    .btn-danger { background: var(--danger-light); color: var(--danger); }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+    .btn:disabled { opacity: 0.5; pointer-events: none; }
+    .input-group { margin-bottom: 14px; }
+    .input-group label {
+      display: block; font-size: 13px; font-weight: 600;
+      margin-bottom: 6px; color: var(--text-secondary);
+    }
+    .input-group input, .input-group select, .input-group textarea {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 15px; background: var(--bg); color: var(--text);
+      outline: none; transition: border-color 0.2s, background 0.3s;
+    }
+    .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+      border-color: var(--primary);
+    }
+    .input-group textarea { resize: vertical; min-height: 50px; }
+    .progress-bar { width: 100%; height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; background: linear-gradient(90deg, var(--accent), #4caf50);
+      border-radius: 5px; transition: width 0.5s ease;
+    }
+    .search-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+    .search-bar input {
+      flex: 1; padding: 10px 14px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 15px; background: var(--card);
+      color: var(--text); outline: none; transition: background 0.3s;
+    }
+    .search-bar input:focus { border-color: var(--primary); }
+    .fab {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--primary); color: white; border: none;
+      font-size: 24px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; box-shadow: 0 3px 10px rgba(232,131,109,0.3);
+    }
+    .word-card { position: relative; }
+    .word-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .word-viet { font-size: 20px; font-weight: 700; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
+    .word-korean { font-size: 17px; font-weight: 600; margin-top: 4px; }
+    .word-pron { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+    .word-example {
+      font-size: 13px; color: var(--text-secondary);
+      margin-top: 8px; padding: 8px 10px;
+      background: var(--secondary-light); border-radius: 8px; line-height: 1.5;
+    }
+    .word-actions { display: flex; gap: 6px; margin-top: 10px; justify-content: flex-end; }
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 8px; border: none;
+      background: var(--bg); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .icon-btn:active { background: var(--border); }
+    .speak-btn { background: none; border: none; font-size: 20px; cursor: pointer; }
+    .speak-btn:active { transform: scale(1.2); }
+    .learn-check {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--text-secondary); cursor: pointer;
+    }
+    .learn-check input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); }
+    .badges { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+    .badge {
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .badge.earned { background: var(--secondary-light); color: #b8860b; }
+    .badge.locked { background: var(--border); color: #bbb; }
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4); z-index: 200;
+      justify-content: center; align-items: flex-end; animation: fadeIn 0.2s;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-content {
+      background: var(--card); border-radius: 20px 20px 0 0;
+      padding: 24px 20px; width: 100%; max-height: 85vh;
+      overflow-y: auto; animation: slideUp 0.3s ease;
+      transition: background 0.3s;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .modal-header h3 { font-size: 18px; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%; border: none;
+      background: var(--bg); font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text);
+    }
+    .quiz-status { text-align: center; padding: 30px 10px; }
+    .quiz-status .emoji { font-size: 60px; display: block; margin-bottom: 16px; }
+    .quiz-question-card { text-align: center; padding: 20px; }
+    .quiz-progress { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+    .quiz-word { font-size: 28px; font-weight: 700; color: var(--primary-dark); margin: 20px 0; }
+    .quiz-prompt { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+    .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+    .quiz-option {
+      padding: 14px 16px; border-radius: 12px;
+      border: 2px solid var(--border); background: var(--card);
+      font-size: 16px; cursor: pointer; text-align: left;
+      transition: all 0.2s; color: var(--text);
+    }
+    .quiz-option:active { transform: scale(0.98); }
+    .quiz-option.correct { border-color: var(--accent); background: var(--accent-light); }
+    .quiz-option.wrong { border-color: var(--danger); background: var(--danger-light); }
+    .quiz-option.disabled { pointer-events: none; }
+    .quiz-result { text-align: center; padding: 20px; }
+    .quiz-score { font-size: 48px; font-weight: 800; color: var(--primary); margin: 10px 0; }
+    .sub-tabs {
+      display: flex; gap: 4px; margin-bottom: 16px;
+      background: var(--border); border-radius: 12px; padding: 3px;
+    }
+    .sub-tab {
+      flex: 1; padding: 8px 4px; border-radius: 10px; border: none;
+      background: none; font-size: 12px; font-weight: 600;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+    }
+    .sub-tab.active {
+      background: var(--card); color: var(--primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .sub-content { display: none; animation: fadeIn 0.2s; }
+    .sub-content.active { display: block; }
+    .radio-group { display: flex; gap: 10px; }
+    .radio-label {
+      flex: 1; padding: 10px; border: 2px solid var(--border);
+      border-radius: 10px; text-align: center;
+      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    }
+    .radio-label.selected { border-color: var(--primary); background: var(--primary-light); }
+    .radio-label input { display: none; }
+    .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .cat-btn {
+      padding: 10px 6px; border: 2px solid var(--border);
+      border-radius: 10px; background: var(--card); font-size: 12px;
+      cursor: pointer; text-align: center; transition: all 0.2s;
+      color: var(--text);
+    }
+    .cat-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+    .cat-btn .cat-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+    .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .calendar-nav h3 { font-size: 16px; }
+    .cal-nav-btn {
+      width: 36px; height: 36px; border-radius: 50%; border: none;
+      background: var(--bg); font-size: 18px; cursor: pointer; color: var(--text);
+    }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-header { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-secondary); padding: 6px 0; }
+    .cal-day {
+      aspect-ratio: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-size: 13px; border-radius: 10px; cursor: pointer;
+      transition: background 0.15s; padding: 2px;
+    }
+    .cal-day:active { background: var(--primary-light); }
+    .cal-day.today { background: var(--primary-light); font-weight: 700; }
+    .cal-day.other-month { opacity: 0.3; }
+    .cal-day .cal-amount { font-size: 8px; color: var(--primary); font-weight: 600; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; }
+    .stat-card {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 16px; background: var(--card); border-radius: 12px;
+      margin-bottom: 8px; border: 1px solid var(--border); transition: background 0.3s;
+    }
+    .stat-label { font-size: 13px; color: var(--text-secondary); }
+    .stat-value { font-size: 18px; font-weight: 700; }
+    .stat-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .stat-section-title { font-size: 14px; font-weight: 700; margin: 18px 0 8px; color: var(--text-secondary); }
+    .stat-bar-group { margin-bottom: 8px; }
+    .stat-bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 3px; }
+    .stat-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .compare-box { background: var(--secondary-light); border-radius: 12px; padding: 14px; margin-top: 12px; }
+    .compare-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
+    .compare-diff { font-weight: 700; }
+    .expense-date-group { margin-bottom: 16px; }
+    .expense-date-label { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; padding-left: 4px; }
+    .expense-item {
+      display: flex; align-items: center; padding: 12px 14px;
+      background: var(--card); border-radius: 12px; margin-bottom: 6px;
+      border: 1px solid var(--border); transition: background 0.3s;
+    }
+    .expense-item-icon { font-size: 24px; margin-right: 12px; }
+    .expense-item-info { flex: 1; }
+    .expense-item-cat { font-size: 13px; font-weight: 600; }
+    .expense-item-memo { font-size: 11px; color: var(--text-secondary); }
+    .expense-item-amount { font-size: 16px; font-weight: 700; text-align: right; }
+    .expense-item-sub { font-size: 10px; color: var(--text-secondary); text-align: right; }
+    .expense-item-actions { display: flex; flex-direction: column; gap: 4px; margin-left: 8px; }
+    .expense-item-actions .icon-btn { width: 28px; height: 28px; font-size: 13px; }
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      padding: 10px 20px; border-radius: 10px; font-size: 14px;
+      z-index: 300; color: white; white-space: nowrap;
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
+    }
+    .toast-info { background: var(--text); }
+    .toast-success { background: var(--accent); }
+    .toast-error { background: var(--danger); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(-50%) translateY(-10px); } }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-secondary); }
+    .empty-state .emoji { font-size: 48px; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; line-height: 1.6; }
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
+      background-size: 200% 100%; animation: skPulse 1.5s infinite;
+      border-radius: 8px; min-height: 20px;
+    }
+    @keyframes skPulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .skeleton-card { padding: 16px; margin-bottom: 12px; border-radius: var(--radius); }
+    .skeleton-line { height: 14px; margin-bottom: 10px; border-radius: 4px; }
+    .skeleton-line.w60 { width: 60%; }
+    .skeleton-line.w80 { width: 80%; }
+    .skeleton-line.w40 { width: 40%; }
+    .search-result-card { position: relative; }
+    .search-result-card .add-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: var(--secondary-light); border: none;
+      width: 36px; height: 36px; border-radius: 50%;
+      font-size: 20px; cursor: pointer; transition: transform 0.2s;
+    }
+    .search-result-card .add-btn:active { transform: scale(1.2); }
+    .search-result-card .add-btn.added { background: var(--accent-light); }
+    .diff-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 10px;
+      font-size: 11px; font-weight: 600;
+    }
+    .diff-easy { background: #d4f5d5; color: #2e7d32; }
+    .diff-normal { background: #fff3d4; color: #f57f17; }
+    .diff-hard { background: #fde0e0; color: #c62828; }
+    [data-theme="dark"] .diff-easy { background: #1a2d1b; color: #66bb6a; }
+    [data-theme="dark"] .diff-normal { background: #2d2815; color: #ffa726; }
+    [data-theme="dark"] .diff-hard { background: #2d1515; color: #ef5350; }
+    .word-cat-filter {
+      display: flex; gap: 6px; margin-bottom: 14px;
+      overflow-x: auto; padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .word-cat-filter::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      padding: 6px 12px; border-radius: 20px;
+      border: 1.5px solid var(--border); background: var(--card);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: all 0.2s; color: var(--text);
+    }
+    .filter-chip.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+    .setting-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .setting-item:last-child { border-bottom: none; }
+    .setting-label { font-size: 14px; font-weight: 600; }
+    .setting-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .toggle-switch {
+      width: 50px; height: 28px; border-radius: 14px;
+      background: var(--border); border: none; cursor: pointer;
+      position: relative; transition: background 0.3s;
+    }
+    .toggle-switch.on { background: var(--accent); }
+    .toggle-switch::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: white; transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.on::after { transform: translateX(22px); }
+    .budget-bar {
+      height: 12px; background: var(--border); border-radius: 6px;
+      overflow: hidden; margin: 8px 0;
+    }
+    .budget-fill {
+      height: 100%; border-radius: 6px; transition: width 0.5s;
+      background: linear-gradient(90deg, var(--accent), #4caf50);
+    }
+    .budget-fill.over { background: linear-gradient(90deg, var(--danger), #ff7043); }
+    .budget-alert {
+      background: var(--danger-light); color: var(--danger);
+      padding: 8px 12px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; margin-bottom: 12px;
+    }
+    .currency-display {
+      font-size: 12px; color: var(--text-secondary); margin-top: 2px;
+    }
+    .offline-banner {
+      position: fixed; top: var(--header-height); left: 0; right: 0;
+      background: var(--danger); color: white; text-align: center;
+      padding: 6px; font-size: 12px; font-weight: 600; z-index: 99;
+      display: none;
+    }
+    .offline-banner.show { display: block; }
+    @media (min-width: 480px) {
+      #app-content { max-width: 480px; margin-left: auto; margin-right: auto; }
+      #bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); }
+      .modal-content { max-width: 480px; }
+    }
+  </style>
+</head>
+<body>
+
+<header id="app-header">
+  <div id="header-title">
+    <div>우리들 / Chung ta</div>
+    <div class="header-sub" id="header-sub">단어장 / Tu vung</div>
+  </div>
+</header>
+
+<div class="offline-banner" id="offline-banner">오프라인 상태입니다 / Ngoai tuyen</div>
+
+<main id="app-content">
+
+  <!-- ====== 단어장 TAB ====== -->
+  <section id="tab-dictionary" class="tab-content active">
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-sub="dict-search" onclick="switchDictSub(this)">🔍 검색</button>
+      <button class="sub-tab" data-sub="dict-mywords" onclick="switchDictSub(this)">📖 내 단어장</button>
+    </div>
+
+    <!-- Search Sub -->
+    <div class="sub-content active" id="dict-search">
+      <div class="search-bar">
+        <input type="text" id="trans-search-input" placeholder="한국어 또는 베트남어 입력..." oninput="onTransSearch(this.value)">
+      </div>
+      <div id="trans-loading" style="display:none;">
+        <div class="card skeleton-card"><div class="skeleton skeleton-line w80"></div><div class="skeleton skeleton-line w60"></div><div class="skeleton skeleton-line w40"></div></div>
+        <div class="card skeleton-card"><div class="skeleton skeleton-line w60"></div><div class="skeleton skeleton-line w80"></div></div>
+      </div>
+      <div id="trans-results"></div>
+      <div id="trans-empty" class="empty-state">
+        <span class="emoji">🔍</span>
+        <p>한국어 또는 베트남어를 입력하면<br>자동으로 번역됩니다!<br><br>Nhap tieng Han hoac tieng Viet<br>de tu dong dich!</p>
+      </div>
+    </div>
+
+    <!-- My Words Sub -->
+    <div class="sub-content" id="dict-mywords">
+      <div class="card" id="progress-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:14px;font-weight:700;">📊 학습 진도 / Tien do</span>
+          <span id="progress-text" style="font-size:13px;color:var(--accent);font-weight:700;">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        <div id="progress-detail" style="font-size:12px;color:var(--text-secondary);margin-top:6px;"></div>
+        <div class="badges" id="badges-container"></div>
+      </div>
+      <div class="word-cat-filter" id="word-cat-filter"></div>
+      <div class="search-bar">
+        <input type="text" id="word-search-input" placeholder="🔍 내 단어 검색..." oninput="renderMyWords()">
+        <button class="fab" onclick="openWordModal()">+</button>
+      </div>
+      <div id="word-list"></div>
+    </div>
+  </section>
+
+  <!-- ====== 퀴즈 TAB ====== -->
+  <section id="tab-quiz" class="tab-content">
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-sub="quiz-daily" onclick="switchQuizSub(this)">🎯 오늘 퀴즈</button>
+      <button class="sub-tab" data-sub="quiz-practice" onclick="switchQuizSub(this)">📝 더 연습</button>
+      <button class="sub-tab" data-sub="quiz-stats" onclick="switchQuizSub(this)">📊 통계</button>
+    </div>
+    <div class="sub-content active" id="quiz-daily"><div id="quiz-container"></div></div>
+    <div class="sub-content" id="quiz-practice"><div id="practice-container"></div></div>
+    <div class="sub-content" id="quiz-stats"><div id="quiz-stats-container"></div></div>
+  </section>
+
+  <!-- ====== 생활비 TAB ====== -->
+  <section id="tab-expenses" class="tab-content">
+    <div class="sub-tabs">
+      <button class="sub-tab active" data-sub="exp-input" onclick="switchExpSub(this)">✏️ 입력</button>
+      <button class="sub-tab" data-sub="exp-calendar" onclick="switchExpSub(this)">📅 달력</button>
+      <button class="sub-tab" data-sub="exp-stats" onclick="switchExpSub(this)">📊 통계</button>
+      <button class="sub-tab" data-sub="exp-list" onclick="switchExpSub(this)">📋 목록</button>
+    </div>
+
+    <div id="budget-alert-container"></div>
+
+    <div class="sub-content active" id="exp-input">
+      <div class="card">
+        <div class="input-group">
+          <label>💰 금액 (원) / So tien (KRW)</label>
+          <input type="number" id="exp-amount" placeholder="금액 입력 (원)" inputmode="numeric" oninput="showVndPreview()">
+          <div class="currency-display" id="vnd-preview"></div>
+        </div>
+        <div class="input-group">
+          <label>💳 결제 수단 / Phuong thuc thanh toan</label>
+          <div class="radio-group">
+            <label class="radio-label selected" id="pay-cash" onclick="selectPayment('cash')">
+              <input type="radio" name="payment" value="cash" checked>
+              💵 현금 / Tien mat
+            </label>
+            <label class="radio-label" id="pay-card" onclick="selectPayment('card')">
+              <input type="radio" name="payment" value="card">
+              💳 카드 / The
+            </label>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>📂 카테고리 / Danh muc</label>
+          <div class="category-grid" id="exp-cat-grid"></div>
+        </div>
+        <div class="input-group">
+          <label>📝 메모 / Ghi chu</label>
+          <input type="text" id="exp-memo" placeholder="메모 입력...">
+        </div>
+        <div class="input-group">
+          <label>📅 날짜 / Ngay</label>
+          <input type="date" id="exp-date">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="addExpense()" style="margin-top:6px;">저장 / Luu ✅</button>
+      </div>
+    </div>
+
+    <div class="sub-content" id="exp-calendar">
+      <div class="card">
+        <div class="calendar-nav">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">◀</button>
+          <h3 id="cal-month-label"></h3>
+          <button class="cal-nav-btn" onclick="changeMonth(1)">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+    </div>
+
+    <div class="sub-content" id="exp-stats"><div id="stats-container"></div></div>
+    <div class="sub-content" id="exp-list"><div id="expense-list-container"></div></div>
+  </section>
+
+  <!-- ====== 설정 TAB ====== -->
+  <section id="tab-settings" class="tab-content">
+    <div class="card">
+      <h3 style="margin-bottom:14px;">⚙️ 설정 / Cai dat</h3>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">🌙 다크모드 / Che do toi</div>
+          <div class="setting-desc">시스템 설정 자동 감지</div>
+        </div>
+        <button class="toggle-switch" id="theme-toggle" onclick="toggleTheme()"></button>
+      </div>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">💱 환율 / Ty gia</div>
+          <div class="setting-desc" id="rate-info">1₩ = --₫</div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="openRateModal()">설정</button>
+      </div>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">💰 월 예산 / Ngan sach</div>
+          <div class="setting-desc" id="budget-info">설정 안됨</div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="openBudgetModal()">설정</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;">💾 데이터 관리 / Quan ly du lieu</h3>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">📥 백업 / Sao luu</div>
+          <div class="setting-desc">JSON 파일로 다운로드</div>
+        </div>
+        <button class="btn btn-sm btn-accent" onclick="backupData()">백업</button>
+      </div>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">📤 복원 / Khoi phuc</div>
+          <div class="setting-desc">JSON 파일 업로드</div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('restore-file').click()">복원</button>
+        <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreData(event)">
+      </div>
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">🗑️ 전체 삭제 / Xoa tat ca</div>
+          <div class="setting-desc">모든 데이터를 삭제합니다</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="deleteAllData()">삭제</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav id="bottom-nav">
+  <button class="nav-item active" data-tab="tab-dictionary" onclick="switchTab(this)">
+    <span class="nav-icon">📚</span><span class="nav-label">단어장</span>
+  </button>
+  <button class="nav-item" data-tab="tab-quiz" onclick="switchTab(this)">
+    <span class="nav-icon">🎯</span><span class="nav-label">퀴즈</span>
+  </button>
+  <button class="nav-item" data-tab="tab-expenses" onclick="switchTab(this)">
+    <span class="nav-icon">💰</span><span class="nav-label">생활비</span>
+  </button>
+  <button class="nav-item" data-tab="tab-settings" onclick="switchTab(this)">
+    <span class="nav-icon">⚙️</span><span class="nav-label">설정</span>
+  </button>
+</nav>
+
+<!-- Word Modal -->
+<div class="modal-overlay" id="word-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="word-modal-title">📝 단어 추가 / Them tu</h3>
+      <button class="modal-close" onclick="closeWordModal()">✕</button>
+    </div>
+    <div class="input-group">
+      <label>🇻🇳 베트남어 / Tieng Viet</label>
+      <input type="text" id="word-viet" placeholder="예: Xin chao">
+    </div>
+    <div class="input-group">
+      <label>🇰🇷 한국어 / Tieng Han</label>
+      <input type="text" id="word-korean" placeholder="예: 안녕하세요">
+    </div>
+    <div class="input-group">
+      <label>🗣️ 발음 / Phat am</label>
+      <input type="text" id="word-pron" placeholder="예: 신 짜오">
+    </div>
+    <div class="input-group">
+      <label>💬 예문 / Vi du</label>
+      <textarea id="word-example" placeholder="예: Xin chao ban!"></textarea>
+    </div>
+    <div class="input-group">
+      <label>📂 카테고리 / Danh muc</label>
+      <div class="category-grid" id="word-cat-grid"></div>
+    </div>
+    <div class="input-group">
+      <label>📊 난이도 / Do kho</label>
+      <div class="radio-group" id="word-diff-group">
+        <label class="radio-label selected" onclick="selectWordDiff('easy')"><input type="radio" name="word-diff" value="easy" checked>쉬움</label>
+        <label class="radio-label" onclick="selectWordDiff('normal')"><input type="radio" name="word-diff" value="normal">보통</label>
+        <label class="radio-label" onclick="selectWordDiff('hard')"><input type="radio" name="word-diff" value="hard">어려움</label>
+      </div>
+    </div>
+    <input type="hidden" id="word-edit-id">
+    <button class="btn btn-primary btn-full" onclick="saveWord()" style="margin-top:4px;">저장 / Luu ✅</button>
+  </div>
+</div>
+
+<!-- Day Detail Modal -->
+<div class="modal-overlay" id="day-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="day-modal-title">📅 지출 상세</h3>
+      <button class="modal-close" onclick="closeDayModal()">✕</button>
+    </div>
+    <div id="day-modal-content"></div>
+  </div>
+</div>
+
+<!-- Expense Edit Modal -->
+<div class="modal-overlay" id="expense-edit-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ 지출 수정 / Sua chi tieu</h3>
+      <button class="modal-close" onclick="closeExpenseEditModal()">✕</button>
+    </div>
+    <div class="input-group">
+      <label>💰 금액 (원) / So tien</label>
+      <input type="number" id="edit-exp-amount" inputmode="numeric">
+    </div>
+    <div class="input-group">
+      <label>💳 결제 수단 / Phuong thuc</label>
+      <div class="radio-group">
+        <label class="radio-label" id="edit-pay-cash" onclick="selectEditPayment('cash')"><input type="radio" name="edit-payment" value="cash">💵 현금</label>
+        <label class="radio-label" id="edit-pay-card" onclick="selectEditPayment('card')"><input type="radio" name="edit-payment" value="card">💳 카드</label>
+      </div>
+    </div>
+    <div class="input-group">
+      <label>📂 카테고리 / Danh muc</label>
+      <select id="edit-exp-cat"></select>
+    </div>
+    <div class="input-group">
+      <label>📝 메모 / Ghi chu</label>
+      <input type="text" id="edit-exp-memo">
+    </div>
+    <div class="input-group">
+      <label>📅 날짜 / Ngay</label>
+      <input type="date" id="edit-exp-date">
+    </div>
+    <input type="hidden" id="edit-exp-id">
+    <button class="btn btn-primary btn-full" onclick="saveEditExpense()">수정 완료 / Hoan thanh ✅</button>
+  </div>
+</div>
+
+<!-- Rate Modal -->
+<div class="modal-overlay" id="rate-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>💱 환율 설정 / Ty gia</h3>
+      <button class="modal-close" onclick="closeModal('rate-modal')">✕</button>
+    </div>
+    <div class="input-group">
+      <label>1 KRW (₩) = ? VND (₫)</label>
+      <input type="number" id="rate-input" step="0.01" inputmode="decimal">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-secondary btn-full" onclick="fetchExchangeRate()">🔄 자동 업데이트</button>
+      <button class="btn btn-primary btn-full" onclick="saveManualRate()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Budget Modal -->
+<div class="modal-overlay" id="budget-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>💰 월 예산 설정 / Ngan sach</h3>
+      <button class="modal-close" onclick="closeModal('budget-modal')">✕</button>
+    </div>
+    <div class="input-group">
+      <label>월 예산 (원) / Ngan sach hang thang (KRW)</label>
+      <input type="number" id="budget-input" inputmode="numeric" placeholder="예: 500000">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveBudget()">저장 / Luu ✅</button>
+  </div>
+</div>
+
+<script>
+// ==================== CONSTANTS ====================
+const SK = {
+  words: 'uridul_words', expenses: 'uridul_expenses',
+  quiz: 'uridul_quiz', quizStats: 'uridul_quiz_stats',
+  cardBill: 'uridul_card_bill', theme: 'uridul_theme',
+  rate: 'uridul_rate', budget: 'uridul_budget',
+  version: 'uridul_version'
+};
+const DEFAULT_RATE = 19.5;
+const WORD_CATS = {
+  greeting: { icon: '👋', ko: '인사', vi: 'Chao hoi' },
+  family: { icon: '👨‍👩‍👧', ko: '가족', vi: 'Gia dinh' },
+  food: { icon: '🍜', ko: '음식', vi: 'Thuc an' },
+  emotion: { icon: '😊', ko: '감정', vi: 'Cam xuc' },
+  daily: { icon: '📅', ko: '일상', vi: 'Hang ngay' },
+  number: { icon: '🔢', ko: '숫자', vi: 'So' },
+  other: { icon: '📌', ko: '기타', vi: 'Khac' }
+};
+const EXP_CATS = {
+  food: { icon: '🍜', ko: '식비', vi: 'An uong' },
+  transport: { icon: '🚕', ko: '교통비', vi: 'Di lai' },
+  shopping: { icon: '🛍️', ko: '쇼핑', vi: 'Mua sam' },
+  living: { icon: '🏠', ko: '생활용품', vi: 'Do gia dung' },
+  cafe: { icon: '☕', ko: '카페', vi: 'Ca phe' },
+  health: { icon: '💊', ko: '의료', vi: 'Y te' },
+  other: { icon: '📦', ko: '기타', vi: 'Khac' }
+};
+const DIFFICULTIES = {
+  easy: { ko: '쉬움', vi: 'De', color: '#66bb6a', count: 5 },
+  normal: { ko: '보통', vi: 'Trung binh', color: '#ffa726', count: 3 },
+  hard: { ko: '어려움', vi: 'Kho', color: '#e85d5d', count: 2 }
+};
+const BADGES = [
+  { count: 10, icon: '🌱', ko: '첫 걸음', vi: 'Buoc dau' },
+  { count: 50, icon: '🌿', ko: '성장 중', vi: 'Dang lon' },
+  { count: 100, icon: '🌳', ko: '마스터', vi: 'Bac thay' }
+];
+
+// ==================== DATA ====================
+function load(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
+function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+let words = load(SK.words) || [];
+let expenses = load(SK.expenses) || [];
+let quizStats = load(SK.quizStats) || { total: 0, correct: 0, streak: 0, best: 0, weekly: {}, monthly: {} };
+let exchangeRate = DEFAULT_RATE;
+let calYear, calMonth;
+let selectedPayment = 'cash';
+let selectedExpCat = 'food';
+let selectedWordCat = 'other';
+let selectedWordDiff = 'easy';
+let editPayment = 'cash';
+let currentWordCatFilter = 'all';
+let searchTimer = null;
+
+// ==================== UTILS ====================
+function toDateStr(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function todayStr() { return toDateStr(new Date()); }
+function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
+function toVnd(krw) { return Math.round(krw * exchangeRate); }
+function dualCurrency(krw) { return `${fmt(krw)}₩ (${fmt(toVnd(krw))}₫)`; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/'/g,'&#39;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function getWeekKey(d) { const dt=new Date(d); const jan1=new Date(dt.getFullYear(),0,1); const wk=Math.ceil(((dt-jan1)/86400000+jan1.getDay()+1)/7); return dt.getFullYear()+'-W'+String(wk).padStart(2,'0'); }
+function getMonthKey(d) { const dt=new Date(d); return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'); }
+function showToast(msg, type='info') {
+  const t=document.createElement('div');
+  t.className='toast toast-'+type; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),2200);
+}
+
+// ==================== THEME ====================
+function initTheme() {
+  const saved = localStorage.getItem(SK.theme);
+  if (saved) { document.documentElement.setAttribute('data-theme', saved); }
+  else if (window.matchMedia('(prefers-color-scheme:dark)').matches) { document.documentElement.setAttribute('data-theme','dark'); }
+  updateThemeToggle();
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const nxt = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nxt);
+  localStorage.setItem(SK.theme, nxt);
+  updateThemeToggle();
+}
+function updateThemeToggle() {
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.classList.toggle('on', document.documentElement.getAttribute('data-theme')==='dark');
+}
+
+// ==================== EXCHANGE RATE ====================
+function loadRate() {
+  const saved = load(SK.rate);
+  if (saved && saved.rate) {
+    exchangeRate = saved.rate;
+    if (saved.lastFetch && Date.now()-saved.lastFetch < 86400000) return;
+  }
+  fetchExchangeRate();
+}
+async function fetchExchangeRate() {
+  try {
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/KRW');
+    const data = await res.json();
+    if (data.rates && data.rates.VND) {
+      exchangeRate = data.rates.VND;
+      save(SK.rate, { rate: exchangeRate, lastFetch: Date.now(), manual: false });
+      showToast('환율 업데이트 완료!','success');
+      updateRateDisplay();
+    }
+  } catch { showToast('환율 업데이트 실패. 기본값 사용.','error'); }
+}
+function saveManualRate() {
+  const v = parseFloat(document.getElementById('rate-input').value);
+  if (!v || v<=0) { showToast('올바른 환율을 입력하세요','error'); return; }
+  exchangeRate = v;
+  save(SK.rate, { rate: v, lastFetch: Date.now(), manual: true });
+  showToast('환율 저장 완료!','success');
+  updateRateDisplay(); closeModal('rate-modal');
+}
+function updateRateDisplay() {
+  const el = document.getElementById('rate-info');
+  if (el) el.textContent = `1₩ = ${exchangeRate.toFixed(2)}₫`;
+}
+function openRateModal() {
+  document.getElementById('rate-input').value = exchangeRate;
+  document.getElementById('rate-modal').classList.add('show');
+}
+
+// ==================== BUDGET ====================
+function loadBudget() {
+  const b = load(SK.budget);
+  const el = document.getElementById('budget-info');
+  if (b && b.amount) {
+    el.textContent = `${fmt(b.amount)}₩ / 월`;
+  } else {
+    el.textContent = '설정 안됨';
+  }
+}
+function openBudgetModal() {
+  const b = load(SK.budget);
+  document.getElementById('budget-input').value = b ? b.amount : '';
+  document.getElementById('budget-modal').classList.add('show');
+}
+function saveBudget() {
+  const v = parseInt(document.getElementById('budget-input').value);
+  if (!v || v<=0) { showToast('올바른 금액을 입력하세요','error'); return; }
+  save(SK.budget, { amount: v });
+  showToast('예산 저장 완료!','success');
+  loadBudget(); closeModal('budget-modal'); renderBudgetAlert(); renderStats();
+}
+function renderBudgetAlert() {
+  const container = document.getElementById('budget-alert-container');
+  const b = load(SK.budget);
+  if (!b || !b.amount) { container.innerHTML=''; return; }
+  const now = new Date();
+  const mk = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const monthTotal = expenses.filter(e => e.date.startsWith(mk)).reduce((s,e)=>s+e.amount,0);
+  const pct = Math.round((monthTotal/b.amount)*100);
+  if (pct >= 90) {
+    container.innerHTML = `<div class="budget-alert">⚠️ 예산의 ${pct}%를 사용했습니다! (${fmt(monthTotal)}₩ / ${fmt(b.amount)}₩)</div>`;
+  } else { container.innerHTML=''; }
+}
+
+// ==================== TAB NAVIGATION ====================
+const headerSubs = {
+  'tab-dictionary': '단어장 / Tu vung', 'tab-quiz': '퀴즈 / Cau do',
+  'tab-expenses': '생활비 / Chi phi', 'tab-settings': '설정 / Cai dat'
+};
+function switchTab(el) {
+  const id = el.dataset.tab;
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('header-sub').textContent = headerSubs[id];
+  if (id==='tab-quiz') { renderQuiz(); renderPractice(); renderQuizStats(); }
+  if (id==='tab-expenses') { renderCalendar(); renderStats(); renderExpenseList(); renderBudgetAlert(); }
+  if (id==='tab-settings') { updateRateDisplay(); loadBudget(); }
+}
+function switchDictSub(el) {
+  document.querySelectorAll('#tab-dictionary .sub-tab').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#tab-dictionary .sub-content').forEach(s=>s.classList.remove('active'));
+  document.getElementById(el.dataset.sub).classList.add('active');
+  if (el.dataset.sub==='dict-mywords') renderMyWords();
+}
+function switchQuizSub(el) {
+  document.querySelectorAll('#tab-quiz .sub-tab').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#tab-quiz .sub-content').forEach(s=>s.classList.remove('active'));
+  document.getElementById(el.dataset.sub).classList.add('active');
+  if (el.dataset.sub==='quiz-daily') renderQuiz();
+  if (el.dataset.sub==='quiz-practice') renderPractice();
+  if (el.dataset.sub==='quiz-stats') renderQuizStats();
+}
+function switchExpSub(el) {
+  document.querySelectorAll('#tab-expenses .sub-tab').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#tab-expenses .sub-content').forEach(s=>s.classList.remove('active'));
+  document.getElementById(el.dataset.sub).classList.add('active');
+  if (el.dataset.sub==='exp-calendar') renderCalendar();
+  if (el.dataset.sub==='exp-stats') renderStats();
+  if (el.dataset.sub==='exp-list') renderExpenseList();
+}
+
+// ==================== SPEECH ====================
+function speak(text, lang) {
+  if (!('speechSynthesis' in window)) { showToast('음성 지원 불가','error'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.lang=lang; u.rate=0.85;
+  window.speechSynthesis.speak(u);
+}
+
+// ==================== TRANSLATION SEARCH ====================
+function detectLang(text) { return /[가-힣]/.test(text) ? 'ko' : 'vi'; }
+function onTransSearch(val) {
+  clearTimeout(searchTimer);
+  const q = val.trim();
+  if (q.length < 1) {
+    document.getElementById('trans-results').innerHTML='';
+    document.getElementById('trans-loading').style.display='none';
+    document.getElementById('trans-empty').style.display='block';
+    return;
+  }
+  document.getElementById('trans-empty').style.display='none';
+  document.getElementById('trans-loading').style.display='block';
+  searchTimer = setTimeout(()=>searchTranslation(q), 600);
+}
+async function searchTranslation(query) {
+  const lang = detectLang(query);
+  const pair = lang==='ko' ? 'ko|vi' : 'vi|ko';
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(query)}&langpair=${pair}`);
+    const data = await res.json();
+    document.getElementById('trans-loading').style.display='none';
+    const results = [];
+    if (data.responseData && data.responseData.translatedText) {
+      results.push({
+        source: query,
+        translated: data.responseData.translatedText,
+        quality: data.responseData.match || 0,
+        sourceLang: lang
+      });
+    }
+    if (data.matches) {
+      data.matches.slice(0, 5).forEach(m => {
+        if (m.translation && m.translation !== results[0]?.translated) {
+          results.push({ source: m.segment, translated: m.translation, quality: parseFloat(m.quality)||0, sourceLang: lang });
+        }
+      });
+    }
+    renderSearchResults(results);
+  } catch {
+    document.getElementById('trans-loading').style.display='none';
+    document.getElementById('trans-results').innerHTML = '<div class="empty-state"><span class="emoji">❌</span><p>번역 실패. 인터넷 연결을 확인하세요.<br>Khong the dich. Kiem tra ket noi.</p></div>';
+  }
+}
+function renderSearchResults(results) {
+  const container = document.getElementById('trans-results');
+  if (results.length===0) {
+    container.innerHTML = '<div class="empty-state"><span class="emoji">🤷</span><p>결과가 없습니다 / Khong co ket qua</p></div>';
+    return;
+  }
+  container.innerHTML = results.map((r, i) => {
+    const viet = r.sourceLang==='ko' ? r.translated : r.source;
+    const kor = r.sourceLang==='ko' ? r.source : r.translated;
+    const exists = words.some(w=>w.vietnamese.toLowerCase()===viet.toLowerCase() && w.korean===kor);
+    return `
+      <div class="card search-result-card">
+        <button class="add-btn ${exists?'added':''}" onclick="addFromSearch(${i})" title="${exists?'추가됨':'단어장에 추가'}">${exists?'✅':'⭐'}</button>
+        <div class="word-viet">
+          <button class="speak-btn" onclick="speak('${esc(viet)}','vi-VN')">🔊</button>
+          ${esc(viet)}
+        </div>
+        <div class="word-korean" style="margin-top:6px;">
+          <button class="speak-btn" onclick="speak('${esc(kor)}','ko-KR')" style="font-size:16px;">🔈</button>
+          ${esc(kor)}
+        </div>
+      </div>`;
+  }).join('');
+  window._searchResults = results;
+}
+function addFromSearch(idx) {
+  const r = window._searchResults[idx];
+  if (!r) return;
+  const viet = r.sourceLang==='ko' ? r.translated : r.source;
+  const kor = r.sourceLang==='ko' ? r.source : r.translated;
+  if (words.some(w=>w.vietnamese.toLowerCase()===viet.toLowerCase()&&w.korean===kor)) {
+    showToast('이미 추가된 단어입니다!','info'); return;
+  }
+  openWordModal(null, viet, kor);
+}
+
+// ==================== WORD CATEGORY GRID ====================
+function renderWordCatGrid(containerId, selected) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = Object.entries(WORD_CATS).map(([k,v])=>
+    `<button class="cat-btn ${k===selected?'selected':''}" data-cat="${k}" onclick="selectWordCatBtn(this,'${containerId}')"><span class="cat-icon">${v.icon}</span>${v.ko}</button>`
+  ).join('');
+}
+function selectWordCatBtn(btn, containerId) {
+  document.querySelectorAll('#'+containerId+' .cat-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedWordCat = btn.dataset.cat;
+}
+function selectWordDiff(d) {
+  selectedWordDiff = d;
+  document.querySelectorAll('#word-diff-group .radio-label').forEach(l=>l.classList.remove('selected'));
+  document.querySelector(`#word-diff-group .radio-label:has(input[value="${d}"])`)?.classList.add('selected')
+    || document.querySelectorAll('#word-diff-group .radio-label').forEach(l=>{if(l.querySelector('input').value===d)l.classList.add('selected');});
+}
+
+// ==================== EXPENSE CAT GRID ====================
+function renderExpCatGrid() {
+  const el = document.getElementById('exp-cat-grid');
+  el.innerHTML = Object.entries(EXP_CATS).map(([k,v])=>
+    `<button class="cat-btn ${k===selectedExpCat?'selected':''}" data-cat="${k}" onclick="selectExpCatBtn(this)"><span class="cat-icon">${v.icon}</span>${v.ko}</button>`
+  ).join('');
+  // Also populate edit select
+  const sel = document.getElementById('edit-exp-cat');
+  sel.innerHTML = Object.entries(EXP_CATS).map(([k,v])=>
+    `<option value="${k}">${v.icon} ${v.ko}</option>`
+  ).join('');
+}
+function selectExpCatBtn(btn) {
+  document.querySelectorAll('#exp-cat-grid .cat-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedExpCat = btn.dataset.cat;
+}
+
+// ==================== WORD CATEGORY FILTER ====================
+function renderWordCatFilter() {
+  const el = document.getElementById('word-cat-filter');
+  let html = `<button class="filter-chip ${currentWordCatFilter==='all'?'active':''}" onclick="filterWordCat('all')">전체</button>`;
+  Object.entries(WORD_CATS).forEach(([k,v])=>{
+    const count = words.filter(w=>(w.category||'other')===k).length;
+    if (count>0) html+=`<button class="filter-chip ${currentWordCatFilter===k?'active':''}" onclick="filterWordCat('${k}')">${v.icon} ${v.ko} (${count})</button>`;
+  });
+  el.innerHTML = html;
+}
+function filterWordCat(cat) { currentWordCatFilter=cat; renderWordCatFilter(); renderMyWords(); }
+
+// ==================== MY WORDS ====================
+function renderMyWords() {
+  const list = document.getElementById('word-list');
+  const query = (document.getElementById('word-search-input')?.value||'').trim().toLowerCase();
+  let filtered = words;
+  if (currentWordCatFilter!=='all') filtered = filtered.filter(w=>(w.category||'other')===currentWordCatFilter);
+  if (query) filtered = filtered.filter(w=>w.vietnamese.toLowerCase().includes(query)||w.korean.includes(query)||(w.pronunciation||'').includes(query));
+
+  if (filtered.length===0) {
+    list.innerHTML = `<div class="empty-state"><span class="emoji">📖</span><p>${query||currentWordCatFilter!=='all'?'검색 결과가 없습니다':'단어를 추가해보세요!'}</p></div>`;
+  } else {
+    list.innerHTML = filtered.map(w=>{
+      const cat = WORD_CATS[w.category||'other']||WORD_CATS.other;
+      const diff = DIFFICULTIES[w.difficulty||'easy']||DIFFICULTIES.easy;
+      return `
+      <div class="card word-card">
+        <div class="word-card-header">
+          <div>
+            <div class="word-viet">
+              <button class="speak-btn" onclick="speak('${esc(w.vietnamese)}','vi-VN')">🔊</button>
+              ${esc(w.vietnamese)}
+            </div>
+            <div class="word-korean">
+              <button class="speak-btn" onclick="speak('${esc(w.korean)}','ko-KR')" style="font-size:16px;">🔈</button>
+              ${esc(w.korean)}
+            </div>
+            ${w.pronunciation?`<div class="word-pron">🗣️ ${esc(w.pronunciation)}</div>`:''}
+          </div>
+          <label class="learn-check">
+            <input type="checkbox" ${w.learned?'checked':''} onchange="toggleLearned(${w.id})">
+            <span>${w.learned?'✅':'⬜'}</span>
+          </label>
+        </div>
+        ${w.example?`<div class="word-example">💬 ${esc(w.example)}</div>`:''}
+        <div style="display:flex;gap:6px;align-items:center;margin-top:8px;">
+          <span style="font-size:12px;">${cat.icon} ${cat.ko}</span>
+          <span class="diff-badge diff-${w.difficulty||'easy'}">${diff.ko}</span>
+          ${w.learnedDate?`<span style="font-size:11px;color:var(--accent);">📅 ${w.learnedDate}</span>`:''}
+        </div>
+        <div class="word-actions">
+          <button class="icon-btn" onclick="editWord(${w.id})">✏️</button>
+          <button class="icon-btn" onclick="deleteWord(${w.id})">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  updateProgress();
+  renderWordCatFilter();
+}
+
+function openWordModal(editId, preViet, preKor) {
+  const modal = document.getElementById('word-modal');
+  modal.classList.add('show');
+  renderWordCatGrid('word-cat-grid', selectedWordCat);
+  if (editId) {
+    const w = words.find(x=>x.id===editId);
+    if (!w) return;
+    document.getElementById('word-modal-title').textContent = '✏️ 단어 수정 / Sua tu';
+    document.getElementById('word-viet').value = w.vietnamese;
+    document.getElementById('word-korean').value = w.korean;
+    document.getElementById('word-pron').value = w.pronunciation||'';
+    document.getElementById('word-example').value = w.example||'';
+    document.getElementById('word-edit-id').value = w.id;
+    selectedWordCat = w.category||'other';
+    selectedWordDiff = w.difficulty||'easy';
+    renderWordCatGrid('word-cat-grid', selectedWordCat);
+    selectWordDiff(selectedWordDiff);
+  } else {
+    document.getElementById('word-modal-title').textContent = '📝 단어 추가 / Them tu';
+    document.getElementById('word-viet').value = preViet||'';
+    document.getElementById('word-korean').value = preKor||'';
+    document.getElementById('word-pron').value = '';
+    document.getElementById('word-example').value = '';
+    document.getElementById('word-edit-id').value = '';
+    selectedWordCat = 'other';
+    selectedWordDiff = 'easy';
+    renderWordCatGrid('word-cat-grid', 'other');
+    selectWordDiff('easy');
+  }
+}
+function closeWordModal() { document.getElementById('word-modal').classList.remove('show'); }
+
+function saveWord() {
+  const v=document.getElementById('word-viet').value.trim();
+  const k=document.getElementById('word-korean').value.trim();
+  const p=document.getElementById('word-pron').value.trim();
+  const e=document.getElementById('word-example').value.trim();
+  const editId=document.getElementById('word-edit-id').value;
+  if (!v||!k) { showToast('베트남어와 한국어를 입력하세요!','error'); return; }
+  if (editId) {
+    const idx=words.findIndex(x=>x.id===Number(editId));
+    if (idx>-1) { Object.assign(words[idx],{vietnamese:v,korean:k,pronunciation:p,example:e,category:selectedWordCat,difficulty:selectedWordDiff}); }
+    showToast('수정 완료!','success');
+  } else {
+    words.unshift({id:Date.now(),vietnamese:v,korean:k,pronunciation:p,example:e,category:selectedWordCat,difficulty:selectedWordDiff,learned:false,learnedDate:null,addedDate:todayStr()});
+    showToast('추가 완료!','success');
+  }
+  save(SK.words, words); closeWordModal(); renderMyWords();
+  // refresh search results if on search tab
+  const q = document.getElementById('trans-search-input')?.value;
+  if (q) onTransSearch(q);
+}
+function editWord(id) { openWordModal(id); }
+function deleteWord(id) {
+  if (!confirm('이 단어를 삭제할까요?\nXoa tu nay?')) return;
+  words=words.filter(w=>w.id!==id); save(SK.words,words); renderMyWords(); showToast('삭제 완료!','success');
+}
+function toggleLearned(id) {
+  const w=words.find(x=>x.id===id);
+  if (w) { w.learned=!w.learned; w.learnedDate=w.learned?todayStr():null; save(SK.words,words); renderMyWords(); }
+}
+function updateProgress() {
+  const total=words.length, learned=words.filter(w=>w.learned).length;
+  const pct=total>0?Math.round((learned/total)*100):0;
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-text').textContent=pct+'%';
+  document.getElementById('progress-detail').textContent=`${total}개 중 ${learned}개 학습 완료 / ${learned}/${total} tu da hoc`;
+  document.getElementById('badges-container').innerHTML=BADGES.map(b=>{
+    const e=learned>=b.count;
+    return `<span class="badge ${e?'earned':'locked'}">${b.icon} ${b.ko} (${b.count})${e?' ✅':''}</span>`;
+  }).join('');
+}
+
+// ==================== QUIZ (DAILY) ====================
+function renderQuiz() {
+  const container=document.getElementById('quiz-container');
+  const qd=load(SK.quiz); const today=todayStr();
+  if (words.length<4) {
+    container.innerHTML=`<div class="quiz-status card"><span class="emoji">📝</span><h3>단어가 부족해요!</h3><p style="color:var(--text-secondary);margin-top:8px;">최소 4개 단어가 필요합니다. 단어장에서 추가해주세요!</p></div>`;
+    return;
+  }
+  if (qd&&qd.date===today&&qd.completed) {
+    container.innerHTML=`<div class="quiz-status card"><span class="emoji">🎉</span><h3>오늘 퀴즈 완료!</h3><div class="quiz-score">${qd.score} / ${qd.total}</div><p style="color:var(--text-secondary);">내일 다시 도전하세요!<br><span style="font-size:12px;">🕛 자정에 새 퀴즈 생성</span></p></div>`;
+    return;
+  }
+  if (qd&&qd.date===today&&!qd.completed) { renderQuizQ(qd); return; }
+  container.innerHTML=`<div class="quiz-status card"><span class="emoji">🎯</span><h3>하루 퀴즈 / Cau do hang ngay</h3><p style="color:var(--text-secondary);margin:12px 0;">매일 10문제로 실력 확인!<br>10 cau hoi moi ngay!</p><button class="btn btn-primary btn-full" onclick="startQuiz()">시작하기 / Bat dau 🚀</button></div>`;
+}
+
+function startQuiz() {
+  const totalQ = Math.min(10, words.length);
+  const easyW=words.filter(w=>(w.difficulty||'easy')==='easy');
+  const normW=words.filter(w=>(w.difficulty||'easy')==='normal');
+  const hardW=words.filter(w=>(w.difficulty||'easy')==='hard');
+  let selected=[];
+  function pick(arr, n) { return [...arr].sort(()=>Math.random()-0.5).slice(0,n); }
+  selected.push(...pick(easyW, Math.min(DIFFICULTIES.easy.count, easyW.length)));
+  selected.push(...pick(normW, Math.min(DIFFICULTIES.normal.count, normW.length)));
+  selected.push(...pick(hardW, Math.min(DIFFICULTIES.hard.count, hardW.length)));
+  // Fill remaining
+  while(selected.length<totalQ) {
+    const remaining=words.filter(w=>!selected.find(s=>s.id===w.id));
+    if(remaining.length===0)break;
+    selected.push(remaining[Math.floor(Math.random()*remaining.length)]);
+  }
+  selected=selected.slice(0,totalQ).sort(()=>Math.random()-0.5);
+  const questions=makeQuestions(selected);
+  const qd={date:todayStr(),questions,current:0,score:0,total:questions.length,completed:false};
+  save(SK.quiz, qd); renderQuizQ(qd);
+}
+
+function makeQuestions(selected) {
+  return selected.map(w=>{
+    const isVK=Math.random()>0.5;
+    const correct=isVK?w.korean:w.vietnamese;
+    const prompt=isVK?w.vietnamese:w.korean;
+    const lang=isVK?'vi→ko':'ko→vi';
+    const pool=words.filter(x=>x.id!==w.id).sort(()=>Math.random()-0.5).slice(0,3);
+    const wrongs=pool.map(x=>isVK?x.korean:x.vietnamese);
+    const options=[...wrongs,correct].sort(()=>Math.random()-0.5);
+    return {wordId:w.id,prompt,correct,options,lang,diff:w.difficulty||'easy',answered:false,userAnswer:null};
+  });
+}
+
+function renderQuizQ(qd) {
+  const container=document.getElementById('quiz-container');
+  const q=qd.questions[qd.current];
+  if (!q) { qd.completed=true; save(SK.quiz,qd); updateQuizStats(qd); renderQuiz(); return; }
+  const diff=DIFFICULTIES[q.diff]||DIFFICULTIES.easy;
+  const dir=q.lang==='vi→ko'?'이 베트남어의 뜻은?':'이 한국어의 베트남어는?';
+  container.innerHTML=`
+    <div class="card quiz-question-card">
+      <div class="quiz-progress">문제 ${qd.current+1} / ${qd.total} <span class="diff-badge diff-${q.diff}">${diff.ko}</span></div>
+      <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" style="width:${(qd.current/qd.total)*100}%;background:var(--secondary);"></div></div>
+      <div style="font-size:12px;color:var(--text-secondary);">${q.lang==='vi→ko'?'🇻🇳 → 🇰🇷':'🇰🇷 → 🇻🇳'}</div>
+      <div class="quiz-word">${esc(q.prompt)}</div>
+      <div class="quiz-prompt">${dir}</div>
+      <div class="quiz-options">
+        ${q.options.map((opt,i)=>`
+          <button class="quiz-option ${q.answered?(opt===q.correct?'correct':(opt===q.userAnswer&&opt!==q.correct?'wrong':'')):''}${q.answered?' disabled':''}" onclick="answerQuiz(${i},'daily')">${esc(opt)}</button>
+        `).join('')}
+      </div>
+      ${q.answered?`
+        <div style="margin-top:16px;">
+          <p style="font-size:15px;font-weight:700;color:${q.userAnswer===q.correct?'var(--accent)':'var(--danger)'};">${q.userAnswer===q.correct?'✅ 정답!':'❌ 오답!'}</p>
+          ${q.userAnswer!==q.correct?`<p style="font-size:13px;color:var(--text-secondary);margin-top:4px;">정답: ${esc(q.correct)}</p>`:''}
+          <button class="btn btn-primary" onclick="nextQuizQ('daily')" style="margin-top:12px;">${qd.current<qd.total-1?'다음 문제 →':'결과 보기 🏆'}</button>
+        </div>`:''}
+    </div>`;
+}
+
+function answerQuiz(idx, mode) {
+  if (mode==='daily') {
+    const qd=load(SK.quiz); const q=qd.questions[qd.current];
+    if(q.answered)return; q.answered=true; q.userAnswer=q.options[idx];
+    if(q.userAnswer===q.correct)qd.score++;
+    save(SK.quiz,qd); renderQuizQ(qd);
+  } else {
+    const pd=load('uridul_practice'); const q=pd.questions[pd.current];
+    if(q.answered)return; q.answered=true; q.userAnswer=q.options[idx];
+    if(q.userAnswer===q.correct)pd.score++;
+    save('uridul_practice',pd); renderPracticeQ(pd);
+  }
+}
+function nextQuizQ(mode) {
+  if (mode==='daily') {
+    const qd=load(SK.quiz); qd.current++; save(SK.quiz,qd); renderQuizQ(qd);
+  } else {
+    const pd=load('uridul_practice'); pd.current++; save('uridul_practice',pd); renderPracticeQ(pd);
+  }
+}
+
+function updateQuizStats(qd) {
+  const today=todayStr();
+  quizStats.total += qd.total;
+  quizStats.correct += qd.score;
+  if (qd.score===qd.total) { quizStats.streak++; quizStats.best=Math.max(quizStats.best,quizStats.streak); }
+  else { quizStats.streak=0; }
+  const wk=getWeekKey(today); const mk=getMonthKey(today);
+  if(!quizStats.weekly[wk])quizStats.weekly[wk]={c:0,t:0};
+  quizStats.weekly[wk].c+=qd.score; quizStats.weekly[wk].t+=qd.total;
+  if(!quizStats.monthly[mk])quizStats.monthly[mk]={c:0,t:0};
+  quizStats.monthly[mk].c+=qd.score; quizStats.monthly[mk].t+=qd.total;
+  save(SK.quizStats, quizStats);
+}
+
+// ==================== QUIZ (PRACTICE) ====================
+function renderPractice() {
+  const container=document.getElementById('practice-container');
+  const pd=load('uridul_practice');
+  if (words.length<4) {
+    container.innerHTML=`<div class="quiz-status card"><span class="emoji">📝</span><h3>단어가 부족해요!</h3><p style="color:var(--text-secondary);margin-top:8px;">최소 4개 단어가 필요합니다.</p></div>`;
+    return;
+  }
+  if (pd&&!pd.completed) { renderPracticeQ(pd); return; }
+  container.innerHTML=`
+    <div class="card" style="text-align:center;padding:24px;">
+      <span style="font-size:48px;display:block;margin-bottom:12px;">📝</span>
+      <h3>추가 연습 / Luyen tap them</h3>
+      <p style="color:var(--text-secondary);margin:12px 0;">난이도를 선택하고 무제한 연습!</p>
+      <div class="radio-group" style="margin:16px 0;">
+        <label class="radio-label selected" id="prac-all" onclick="selectPracDiff('all')"><input type="radio" name="prac-diff" value="all" checked>전체</label>
+        <label class="radio-label" id="prac-easy" onclick="selectPracDiff('easy')"><input type="radio" name="prac-diff" value="easy">쉬움</label>
+        <label class="radio-label" id="prac-normal" onclick="selectPracDiff('normal')"><input type="radio" name="prac-diff" value="normal">보통</label>
+        <label class="radio-label" id="prac-hard" onclick="selectPracDiff('hard')"><input type="radio" name="prac-diff" value="hard">어려움</label>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="startPractice()">연습 시작 🚀</button>
+    </div>`;
+}
+let pracDiff='all';
+function selectPracDiff(d) {
+  pracDiff=d;
+  ['all','easy','normal','hard'].forEach(x=>{
+    const el=document.getElementById('prac-'+x);
+    if(el)el.classList.toggle('selected',x===d);
+  });
+}
+function startPractice() {
+  let pool=words;
+  if(pracDiff!=='all') pool=words.filter(w=>(w.difficulty||'easy')===pracDiff);
+  if(pool.length<4) { showToast('해당 난이도 단어가 부족합니다!','error'); return; }
+  const selected=[...pool].sort(()=>Math.random()-0.5).slice(0,10);
+  const questions=makeQuestions(selected);
+  const pd={questions,current:0,score:0,total:questions.length,completed:false,diff:pracDiff};
+  save('uridul_practice',pd); renderPracticeQ(pd);
+}
+function renderPracticeQ(pd) {
+  const container=document.getElementById('practice-container');
+  const q=pd.questions[pd.current];
+  if(!q) {
+    pd.completed=true; save('uridul_practice',pd);
+    const wrongs=pd.questions.filter(q=>q.userAnswer!==q.correct);
+    container.innerHTML=`
+      <div class="card" style="text-align:center;padding:24px;">
+        <span style="font-size:48px;display:block;margin-bottom:12px;">🏆</span>
+        <h3>연습 완료!</h3>
+        <div class="quiz-score">${pd.score} / ${pd.total}</div>
+        ${wrongs.length>0?`<button class="btn btn-danger" onclick="retryWrong()" style="margin:8px 0;">틀린 문제 다시 풀기 (${wrongs.length})</button>`:''}
+        <button class="btn btn-primary btn-full" onclick="localStorage.removeItem('uridul_practice');renderPractice();" style="margin-top:8px;">다시 시작</button>
+      </div>`;
+    return;
+  }
+  const diff=DIFFICULTIES[q.diff]||DIFFICULTIES.easy;
+  const dir=q.lang==='vi→ko'?'이 베트남어의 뜻은?':'이 한국어의 베트남어는?';
+  container.innerHTML=`
+    <div class="card quiz-question-card">
+      <div class="quiz-progress">문제 ${pd.current+1} / ${pd.total} <span class="diff-badge diff-${q.diff}">${diff.ko}</span></div>
+      <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" style="width:${(pd.current/pd.total)*100}%;background:var(--secondary);"></div></div>
+      <div style="font-size:12px;color:var(--text-secondary);">${q.lang==='vi→ko'?'🇻🇳 → 🇰🇷':'🇰🇷 → 🇻🇳'}</div>
+      <div class="quiz-word">${esc(q.prompt)}</div>
+      <div class="quiz-prompt">${dir}</div>
+      <div class="quiz-options">
+        ${q.options.map((opt,i)=>`
+          <button class="quiz-option ${q.answered?(opt===q.correct?'correct':(opt===q.userAnswer&&opt!==q.correct?'wrong':'')):''}${q.answered?' disabled':''}" onclick="answerQuiz(${i},'practice')">${esc(opt)}</button>
+        `).join('')}
+      </div>
+      ${q.answered?`<div style="margin-top:16px;">
+        <p style="font-size:15px;font-weight:700;color:${q.userAnswer===q.correct?'var(--accent)':'var(--danger)'};">${q.userAnswer===q.correct?'✅ 정답!':'❌ 오답!'}</p>
+        ${q.userAnswer!==q.correct?`<p style="font-size:13px;color:var(--text-secondary);margin-top:4px;">정답: ${esc(q.correct)}</p>`:''}
+        <button class="btn btn-primary" onclick="nextQuizQ('practice')" style="margin-top:12px;">${pd.current<pd.total-1?'다음 →':'결과 보기 🏆'}</button>
+      </div>`:''}
+    </div>`;
+}
+function retryWrong() {
+  const pd=load('uridul_practice');
+  if(!pd) return;
+  const wrongs=pd.questions.filter(q=>q.userAnswer!==q.correct);
+  const wordIds=wrongs.map(q=>q.wordId);
+  const pool=words.filter(w=>wordIds.includes(w.id));
+  if(pool.length<2) { showToast('단어가 부족합니다','error'); return; }
+  const questions=makeQuestions(pool);
+  const npd={questions,current:0,score:0,total:questions.length,completed:false,diff:'retry'};
+  save('uridul_practice',npd); renderPracticeQ(npd);
+}
+
+// ==================== QUIZ STATS ====================
+function renderQuizStats() {
+  const container=document.getElementById('quiz-stats-container');
+  const s=quizStats;
+  const accuracy=s.total>0?Math.round((s.correct/s.total)*100):0;
+  const wk=getWeekKey(todayStr()); const mk=getMonthKey(todayStr());
+  const ws=s.weekly[wk]||{c:0,t:0}; const ms=s.monthly[mk]||{c:0,t:0};
+  const wAcc=ws.t>0?Math.round((ws.c/ws.t)*100):0;
+  const mAcc=ms.t>0?Math.round((ms.c/ms.t)*100):0;
+  container.innerHTML=`
+    <div class="stat-card"><div><div class="stat-label">🔥 연속 정답</div></div><div class="stat-value" style="color:var(--danger);">${s.streak}</div></div>
+    <div class="stat-card"><div><div class="stat-label">🏆 최고 연속</div></div><div class="stat-value" style="color:var(--secondary);">${s.best}</div></div>
+    <div class="stat-card"><div><div class="stat-label">🎯 전체 정답률</div></div><div class="stat-value" style="color:var(--accent);">${accuracy}%</div></div>
+    <div class="stat-card"><div><div class="stat-label">📊 전체 문제</div></div><div class="stat-value">${s.correct}/${s.total}</div></div>
+    <div class="stat-section-title">📅 이번 주 / Tuan nay</div>
+    <div class="stat-card"><div><div class="stat-label">정답률</div></div><div class="stat-value">${wAcc}% (${ws.c}/${ws.t})</div></div>
+    <div class="stat-section-title">📅 이번 달 / Thang nay</div>
+    <div class="stat-card"><div><div class="stat-label">정답률</div></div><div class="stat-value">${mAcc}% (${ms.c}/${ms.t})</div></div>
+  `;
+}
+
+// ==================== EXPENSES ====================
+function selectPayment(type) {
+  selectedPayment=type;
+  document.getElementById('pay-cash').classList.toggle('selected',type==='cash');
+  document.getElementById('pay-card').classList.toggle('selected',type==='card');
+}
+function showVndPreview() {
+  const v=parseInt(document.getElementById('exp-amount').value)||0;
+  document.getElementById('vnd-preview').textContent=v>0?`≈ ${fmt(toVnd(v))}₫`:'';
+}
+function addExpense() {
+  const amount=parseInt(document.getElementById('exp-amount').value);
+  const memo=document.getElementById('exp-memo').value.trim();
+  const date=document.getElementById('exp-date').value;
+  if(!amount||amount<=0){showToast('금액을 입력하세요!','error');return;}
+  if(!date){showToast('날짜를 선택하세요!','error');return;}
+  expenses.unshift({id:Date.now(),amount,payment:selectedPayment,category:selectedExpCat,memo,date});
+  save(SK.expenses,expenses);
+  document.getElementById('exp-amount').value='';
+  document.getElementById('exp-memo').value='';
+  document.getElementById('vnd-preview').textContent='';
+  showToast('저장 완료!','success');
+  renderCalendar(); renderStats(); renderExpenseList(); renderBudgetAlert();
+}
+function deleteExpense(id) {
+  if(!confirm('이 지출을 삭제할까요?'))return;
+  expenses=expenses.filter(e=>e.id!==id); save(SK.expenses,expenses);
+  renderCalendar(); renderStats(); renderExpenseList(); renderBudgetAlert();
+  showToast('삭제 완료!','success');
+}
+function openExpenseEditModal(id) {
+  const e=expenses.find(x=>x.id===id); if(!e)return;
+  document.getElementById('edit-exp-amount').value=e.amount;
+  document.getElementById('edit-exp-memo').value=e.memo;
+  document.getElementById('edit-exp-date').value=e.date;
+  document.getElementById('edit-exp-cat').value=e.category;
+  document.getElementById('edit-exp-id').value=e.id;
+  selectEditPayment(e.payment);
+  document.getElementById('expense-edit-modal').classList.add('show');
+}
+function closeExpenseEditModal(){document.getElementById('expense-edit-modal').classList.remove('show');}
+function selectEditPayment(type) {
+  editPayment=type;
+  document.getElementById('edit-pay-cash').classList.toggle('selected',type==='cash');
+  document.getElementById('edit-pay-card').classList.toggle('selected',type==='card');
+}
+function saveEditExpense() {
+  const id=Number(document.getElementById('edit-exp-id').value);
+  const idx=expenses.findIndex(e=>e.id===id); if(idx<0)return;
+  expenses[idx].amount=parseInt(document.getElementById('edit-exp-amount').value)||0;
+  expenses[idx].payment=editPayment;
+  expenses[idx].category=document.getElementById('edit-exp-cat').value;
+  expenses[idx].memo=document.getElementById('edit-exp-memo').value.trim();
+  expenses[idx].date=document.getElementById('edit-exp-date').value;
+  save(SK.expenses,expenses); closeExpenseEditModal();
+  renderCalendar(); renderStats(); renderExpenseList(); closeDayModal();
+  showToast('수정 완료!','success');
+}
+
+// ==================== CALENDAR ====================
+function changeMonth(d){calMonth+=d;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+function renderCalendar() {
+  const label=document.getElementById('cal-month-label');
+  const grid=document.getElementById('calendar-grid');
+  const mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  label.textContent=`${calYear}년 ${mn[calMonth]}`;
+  const dh=['일','월','화','수','목','금','토'];
+  let html=dh.map(d=>`<div class="cal-header">${d}</div>`).join('');
+  const fd=new Date(calYear,calMonth,1).getDay();
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  const pd=new Date(calYear,calMonth,0).getDate();
+  const dt={};
+  expenses.forEach(e=>{const[ey,em]=e.date.split('-').map(Number);if(ey===calYear&&em===calMonth+1){const d=parseInt(e.date.split('-')[2]);dt[d]=(dt[d]||0)+e.amount;}});
+  const td=new Date();const itm=td.getFullYear()===calYear&&td.getMonth()===calMonth;
+  for(let i=0;i<fd;i++){html+=`<div class="cal-day other-month">${pd-fd+1+i}</div>`;}
+  for(let d=1;d<=dim;d++){
+    const it=itm&&d===td.getDate();
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const t=dt[d];
+    html+=`<div class="cal-day ${it?'today':''}" onclick="showDayDetail('${ds}')">${d}${t?`<div class="cal-amount">${t>=1000000?(t/1000000).toFixed(1)+'M':t>=1000?Math.round(t/1000)+'K':t}</div>`:''}</div>`;
+  }
+  const rem=7-((fd+dim)%7);if(rem<7){for(let i=1;i<=rem;i++){html+=`<div class="cal-day other-month">${i}</div>`;}}
+  grid.innerHTML=html;
+}
+function showDayDetail(dateStr) {
+  const de=expenses.filter(e=>e.date===dateStr);
+  const modal=document.getElementById('day-modal');
+  const parts=dateStr.split('-');
+  document.getElementById('day-modal-title').textContent=`📅 ${parts[1]}/${parts[2]} 지출 상세`;
+  const content=document.getElementById('day-modal-content');
+  if(de.length===0){content.innerHTML='<div class="empty-state"><span class="emoji">💸</span><p>지출이 없습니다.</p></div>';}
+  else{
+    const total=de.reduce((s,e)=>s+e.amount,0);
+    content.innerHTML=`
+      <div style="text-align:center;margin-bottom:12px;">
+        <span style="font-size:22px;font-weight:700;color:var(--primary);">${dualCurrency(total)}</span>
+      </div>
+      ${de.map(e=>`
+        <div class="expense-item">
+          <div class="expense-item-icon">${EXP_CATS[e.category]?.icon||'📦'}</div>
+          <div class="expense-item-info">
+            <div class="expense-item-cat">${EXP_CATS[e.category]?.ko||'기타'}</div>
+            <div class="expense-item-memo">${esc(e.memo)||'-'}</div>
+          </div>
+          <div>
+            <div class="expense-item-amount">${fmt(e.amount)}₩</div>
+            <div class="expense-item-sub">${fmt(toVnd(e.amount))}₫ | ${e.payment==='cash'?'💵':'💳'}</div>
+          </div>
+          <div class="expense-item-actions">
+            <button class="icon-btn" onclick="openExpenseEditModal(${e.id})">✏️</button>
+            <button class="icon-btn" onclick="deleteExpense(${e.id});closeDayModal();">🗑️</button>
+          </div>
+        </div>`).join('')}`;
+  }
+  modal.classList.add('show');
+}
+function closeDayModal(){document.getElementById('day-modal').classList.remove('show');}
+
+// ==================== STATS ====================
+function renderStats() {
+  const container=document.getElementById('stats-container');
+  const today=todayStr();
+  const mk=calYear+'-'+String(calMonth+1).padStart(2,'0');
+  const me=expenses.filter(e=>e.date.startsWith(mk));
+  const te=expenses.filter(e=>e.date===today);
+  const tt=te.reduce((s,e)=>s+e.amount,0);
+  const mt=me.reduce((s,e)=>s+e.amount,0);
+  const ct=me.filter(e=>e.payment==='cash').reduce((s,e)=>s+e.amount,0);
+  const cdt=me.filter(e=>e.payment==='card').reduce((s,e)=>s+e.amount,0);
+  const catT={};me.forEach(e=>{catT[e.category]=(catT[e.category]||0)+e.amount;});
+  const maxC=Math.max(...Object.values(catT),1);
+  const budget=load(SK.budget);
+  const mn=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const colors={food:'#e8836d',transport:'#42a5f5',shopping:'#ab47bc',living:'#66bb6a',cafe:'#8d6e63',health:'#26a69a',other:'#ffa726'};
+
+  let budgetHtml='';
+  if(budget&&budget.amount){
+    const pct=Math.round((mt/budget.amount)*100);
+    budgetHtml=`
+      <div class="stat-section-title">💰 예산 / Ngan sach</div>
+      <div class="stat-card"><div><div class="stat-label">월 예산</div></div><div class="stat-value">${dualCurrency(budget.amount)}</div></div>
+      <div style="padding:0 4px;">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+          <span>사용: ${fmt(mt)}₩</span><span>${pct}%</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill ${pct>100?'over':''}" style="width:${Math.min(pct,100)}%"></div></div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">남은 예산: ${dualCurrency(Math.max(budget.amount-mt,0))}</div>
+      </div>`;
+  }
+
+  container.innerHTML=`
+    <div class="stat-card"><div><div class="stat-label">📅 오늘 지출</div></div><div><div class="stat-value" style="color:var(--primary);">${fmt(tt)}₩</div><div class="stat-sub">${fmt(toVnd(tt))}₫</div></div></div>
+    <div class="stat-card"><div><div class="stat-label">📊 ${mn[calMonth]} 전체</div></div><div><div class="stat-value">${fmt(mt)}₩</div><div class="stat-sub">${fmt(toVnd(mt))}₫</div></div></div>
+    <div class="stat-card"><div><div class="stat-label">💵 현금</div></div><div><div class="stat-value" style="color:#66bb6a;">${fmt(ct)}₩</div><div class="stat-sub">${fmt(toVnd(ct))}₫</div></div></div>
+    <div class="stat-card"><div><div class="stat-label">💳 카드</div></div><div><div class="stat-value" style="color:#42a5f5;">${fmt(cdt)}₩</div><div class="stat-sub">${fmt(toVnd(cdt))}₫</div></div></div>
+    ${budgetHtml}
+    <div class="stat-section-title">📂 카테고리별</div>
+    ${Object.entries(catT).sort((a,b)=>b[1]-a[1]).map(([cat,total])=>{
+      const c=EXP_CATS[cat]||EXP_CATS.other;
+      return `<div class="stat-bar-group"><div class="stat-bar-label"><span>${c.icon} ${c.ko}</span><span>${dualCurrency(total)}</span></div><div class="stat-bar"><div class="stat-bar-fill" style="width:${(total/maxC)*100}%;background:${colors[cat]||'#999'}"></div></div></div>`;
+    }).join('')}
+  `;
+}
+
+// ==================== EXPENSE LIST ====================
+function renderExpenseList() {
+  const container=document.getElementById('expense-list-container');
+  if(expenses.length===0){container.innerHTML='<div class="empty-state"><span class="emoji">💰</span><p>지출 내역이 없습니다.</p></div>';return;}
+  const grouped={};expenses.forEach(e=>{if(!grouped[e.date])grouped[e.date]=[];grouped[e.date].push(e);});
+  const sorted=Object.keys(grouped).sort((a,b)=>b.localeCompare(a));
+  container.innerHTML=sorted.map(date=>{
+    const dayT=grouped[date].reduce((s,e)=>s+e.amount,0);
+    const p=date.split('-');
+    const dn=['일','월','화','수','목','금','토'][new Date(date).getDay()];
+    return `<div class="expense-date-group">
+      <div class="expense-date-label">${p[1]}/${p[2]} (${dn}) — ${dualCurrency(dayT)}</div>
+      ${grouped[date].map(e=>`
+        <div class="expense-item">
+          <div class="expense-item-icon">${EXP_CATS[e.category]?.icon||'📦'}</div>
+          <div class="expense-item-info">
+            <div class="expense-item-cat">${EXP_CATS[e.category]?.ko||'기타'}</div>
+            <div class="expense-item-memo">${esc(e.memo)||'-'}</div>
+          </div>
+          <div>
+            <div class="expense-item-amount">${fmt(e.amount)}₩</div>
+            <div class="expense-item-sub">${fmt(toVnd(e.amount))}₫ | ${e.payment==='cash'?'💵':'💳'}</div>
+          </div>
+          <div class="expense-item-actions">
+            <button class="icon-btn" onclick="openExpenseEditModal(${e.id})">✏️</button>
+            <button class="icon-btn" onclick="deleteExpense(${e.id})">🗑️</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+// ==================== SETTINGS / BACKUP ====================
+function backupData() {
+  const data={version:2,date:todayStr(),words,expenses,quizStats,budget:load(SK.budget),rate:load(SK.rate)};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`uridul-backup-${todayStr()}.json`;a.click();
+  showToast('백업 완료!','success');
+}
+function restoreData(event) {
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.words)save(SK.words,data.words);
+      if(data.expenses)save(SK.expenses,data.expenses);
+      if(data.quizStats)save(SK.quizStats,data.quizStats);
+      if(data.budget)save(SK.budget,data.budget);
+      if(data.rate)save(SK.rate,data.rate);
+      words=data.words||[];expenses=data.expenses||[];quizStats=data.quizStats||quizStats;
+      showToast('복원 완료! 새로고침합니다.','success');
+      setTimeout(()=>location.reload(),1000);
+    }catch{showToast('파일을 읽을 수 없습니다.','error');}
+  };
+  reader.readAsText(file);
+  event.target.value='';
+}
+function deleteAllData() {
+  if(!confirm('정말 모든 데이터를 삭제할까요?\nXoa tat ca du lieu?'))return;
+  if(!confirm('되돌릴 수 없습니다! 정말 삭제하시겠습니까?'))return;
+  Object.values(SK).forEach(k=>localStorage.removeItem(k));
+  localStorage.removeItem('uridul_practice');
+  showToast('전체 삭제 완료!','success');
+  setTimeout(()=>location.reload(),1000);
+}
+
+// ==================== MODALS ====================
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});});
+
+// ==================== SWIPE ====================
+let touchSX=0;
+document.addEventListener('touchstart',e=>{touchSX=e.changedTouches[0].screenX;},{passive:true});
+document.addEventListener('touchend',e=>{
+  const diff=touchSX-e.changedTouches[0].screenX;
+  if(Math.abs(diff)<80)return;
+  const tabs=['tab-dictionary','tab-quiz','tab-expenses','tab-settings'];
+  const ci=tabs.findIndex(t=>document.getElementById(t).classList.contains('active'));
+  if(diff>0&&ci<tabs.length-1)switchTab(document.querySelector(`[data-tab="${tabs[ci+1]}"]`));
+  else if(diff<0&&ci>0)switchTab(document.querySelector(`[data-tab="${tabs[ci-1]}"]`));
+},{passive:true});
+
+// ==================== OFFLINE ====================
+function updateOnlineStatus(){document.getElementById('offline-banner').classList.toggle('show',!navigator.onLine);}
+window.addEventListener('online',()=>{updateOnlineStatus();showToast('온라인 복귀!','success');});
+window.addEventListener('offline',()=>{updateOnlineStatus();showToast('오프라인 상태입니다','error');});
+
+// ==================== SAMPLE DATA ====================
+function initSampleData() {
+  const sw=[
+    {id:1,vietnamese:'Xin chao',korean:'안녕하세요',pronunciation:'신 짜오',example:'Xin chao ban! (친구에게 인사)',category:'greeting',difficulty:'easy',learned:false,learnedDate:null},
+    {id:2,vietnamese:'Cam on',korean:'감사합니다',pronunciation:'깜 언',example:'Cam on ban rat nhieu! (정말 감사합니다)',category:'greeting',difficulty:'easy',learned:false,learnedDate:null},
+    {id:3,vietnamese:'Tam biet',korean:'안녕히 가세요',pronunciation:'땀 비엣',example:'Tam biet nhe! (잘 가요!)',category:'greeting',difficulty:'easy',learned:false,learnedDate:null},
+    {id:4,vietnamese:'Xin loi',korean:'죄송합니다',pronunciation:'신 로이',example:'Xin loi, toi khong biet. (죄송해요, 몰라요)',category:'greeting',difficulty:'easy',learned:false,learnedDate:null},
+    {id:5,vietnamese:'Vang',korean:'네',pronunciation:'빙',example:'Vang, toi hieu. (네, 이해해요)',category:'greeting',difficulty:'easy',learned:false,learnedDate:null},
+    {id:6,vietnamese:'Khong',korean:'아니요',pronunciation:'콩',example:'Khong, cam on. (아니요, 괜찮아요)',category:'greeting',difficulty:'easy',learned:false,learnedDate:null},
+    {id:7,vietnamese:'Toi yeu ban',korean:'사랑해요',pronunciation:'또이 이에우 반',example:'Anh yeu em. (당신을 사랑해요)',category:'emotion',difficulty:'easy',learned:false,learnedDate:null},
+    {id:8,vietnamese:'Pho',korean:'쌀국수',pronunciation:'퍼',example:'Toi muon an pho. (쌀국수 먹고 싶어요)',category:'food',difficulty:'easy',learned:false,learnedDate:null},
+    {id:9,vietnamese:'Ca phe sua da',korean:'연유 아이스커피',pronunciation:'까 페 쓰어 다',example:'Cho toi mot ly ca phe sua da.',category:'food',difficulty:'normal',learned:false,learnedDate:null},
+    {id:10,vietnamese:'Bao nhieu tien?',korean:'얼마예요?',pronunciation:'바오 니에우 띠엔',example:'Cai nay bao nhieu tien? (이것 얼마예요?)',category:'daily',difficulty:'normal',learned:false,learnedDate:null}
+  ];
+  save(SK.words, sw);
+  const now=new Date();const y=now.getFullYear(),m=now.getMonth(),d=now.getDate();
+  const se=[
+    {id:11,amount:8000,payment:'cash',category:'food',memo:'쌀국수 / Pho',date:toDateStr(new Date(y,m,d))},
+    {id:12,amount:15000,payment:'card',category:'transport',memo:'그랩 / Grab',date:toDateStr(new Date(y,m,d-1))},
+    {id:13,amount:5000,payment:'cash',category:'cafe',memo:'카페 / Ca phe',date:toDateStr(new Date(y,m,d-1))}
+  ];
+  save(SK.expenses, se);
+}
+
+// ==================== MIGRATE ====================
+function migrateData() {
+  words.forEach(w=>{
+    if(!w.category)w.category='other';
+    if(!w.difficulty)w.difficulty='easy';
+  });
+  save(SK.words, words);
+}
+
+// ==================== INIT ====================
+function initApp() {
+  initTheme();
+  const ver=localStorage.getItem(SK.version);
+  if(!ver) {
+    if(words.length===0&&expenses.length===0) initSampleData();
+    else migrateData();
+    localStorage.setItem(SK.version,'2');
+  }
+  words=load(SK.words)||[];
+  expenses=load(SK.expenses)||[];
+  quizStats=load(SK.quizStats)||{total:0,correct:0,streak:0,best:0,weekly:{},monthly:{}};
+  const now=new Date();calYear=now.getFullYear();calMonth=now.getMonth();
+  document.getElementById('exp-date').value=toDateStr(now);
+  loadRate();
+  renderExpCatGrid();
+  renderMyWords();
+  renderQuiz();
+  renderCalendar();
+  renderStats();
+  renderExpenseList();
+  renderBudgetAlert();
+  updateRateDisplay();
+  loadBudget();
+  updateOnlineStatus();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+}
+initApp();
+</script>
+</body>
+</html>
