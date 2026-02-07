@@ -1416,7 +1416,7 @@ function renderQuizMain(){
       <div class="quiz-mode-title">Luyện tập / 연습 모드</div>
       <div class="quiz-mode-desc">Không giới hạn / 무제한 연습</div>
     </div>
-    <div class="card quiz-mode-card ${wrongCount===0?'':''" onclick="${wrongCount>0?`startQuizMode('wrong')`:''}">
+    <div class="card quiz-mode-card" onclick="${wrongCount>0?'startQuizMode(\'wrong\')':''}" style="${wrongCount===0?'opacity:.5':''}" >
       <span class="quiz-mode-icon">🔄</span>
       <div class="quiz-mode-title">Ôn từ sai / 틀린 단어 복습</div>
       <div class="quiz-mode-desc">${wrongCount>0?`${wrongCount} từ cần ôn / ${wrongCount}개 복습 필요`:'Chưa có từ sai / 틀린 단어 없음'}</div>
