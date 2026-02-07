@@ -1872,8 +1872,8 @@ function toggleSharing(){
   const cfg=getShareConfig();
   if(!cfg.enabled){
     document.getElementById('share-config').style.display='block';
-    document.getElementById('family-code').value=cfg.familyCode||'';
-    document.getElementById('firebase-url').value=cfg.firebaseUrl||'';
+    document.getElementById('family-code').value=cfg.familyCode||'uri-dul-family';
+    document.getElementById('firebase-url').value=cfg.firebaseUrl||'https://uri-dul-app-6d910-default-rtdb.firebaseio.com';
   }else{disconnectSharing();}
 }
 
