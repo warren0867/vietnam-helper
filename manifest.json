@@ -1,7 +1,7 @@
 {
   "name": "우리들 / Chúng ta",
   "short_name": "우리들",
-  "description": "베트남어-한국어 학습 & 생활비 관리 / Học tiếng Việt-Hàn & Quản lý chi phí",
+  "description": "Ứng dụng học tiếng Hàn & Quản lý chi phí / 한국어 학습 & 생활비 관리 - 500 từ TOPIK",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#fef9f4",
