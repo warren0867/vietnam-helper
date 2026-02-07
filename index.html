@@ -162,6 +162,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .compare-box{background:var(--secondary-light);border-radius:12px;padding:14px;margin-top:12px}.compare-row{display:flex;justify-content:space-between;font-size:14px;padding:4px 0}.compare-diff{font-weight:700}
 @media(min-width:480px){#app-content{max-width:480px;margin-left:auto;margin-right:auto}#bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}.modal-content{max-width:480px}}
 </style>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -328,6 +331,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <button class="btn btn-sm btn-accent" onclick="backupData()">Sao lưu / 백업</button>
 </div>
 <div class="setting-item">
+<div><div class="setting-label">📥 엑셀로 단어 업로드</div><div class="setting-desc">Excel/CSV (.xlsx, .xls, .csv)</div></div>
+<button class="btn btn-sm btn-secondary" onclick="document.getElementById('excel-file').click()">업로드</button>
+<input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(event)">
+</div>
+<div class="setting-item">
 <div><div class="setting-label">📤 Khôi phục / 복원</div><div class="setting-desc">JSON upload</div></div>
 <button class="btn btn-sm btn-secondary" onclick="document.getElementById('restore-file').click()">Khôi phục / 복원</button>
 <input type="file" id="restore-file" accept=".json" style="display:none" onchange="restoreData(event)">
@@ -338,9 +346,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 </div>
 <div class="card">
+<h3 style="margin-bottom:14px;">🔗 Chia sẻ / 실시간 공유</h3>
+<div class="setting-item">
+<div><div class="setting-label">📡 Chia sẻ dữ liệu / 데이터 공유</div><div class="setting-desc" id="share-status">Chưa kết nối / 미연결</div></div>
+<button class="toggle-switch" id="share-toggle" onclick="toggleSharing()"></button>
+</div>
+<div id="share-config" style="display:none;padding-top:10px;">
+<div class="input-group">
+<label>🔑 Mã gia đình / 가족 코드</label>
+<input type="text" id="family-code" placeholder="예: uri-dul-family">
+<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">같은 코드를 입력하면 데이터가 공유됩니다</div>
+</div>
+<div class="input-group">
+<label>🌐 Firebase URL</label>
+<input type="text" id="firebase-url" placeholder="https://your-project.firebaseio.com">
+<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Firebase Realtime Database URL을 입력하세요</div>
+</div>
+<button class="btn btn-primary btn-full" onclick="connectSharing()" style="margin-top:8px;">연결하기 / Kết nối 🔗</button>
+<button class="btn btn-outline btn-full" onclick="disconnectSharing()" style="margin-top:6px;">연결 해제 / Ngắt kết nối</button>
+</div>
+</div>
+<div class="card">
 <h3 style="margin-bottom:14px;">ℹ️ Thông tin / 정보</h3>
 <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;">
-<div>📱 우리들 / Chúng ta v3.0</div>
+<div>📱 우리들 / Chúng ta v3.1</div>
 <div>🇻🇳🇰🇷 Ứng dụng học tiếng Hàn / 한국어 학습 앱</div>
 <div>📚 500 từ TOPIK cơ bản / TOPIK 기본 500단어</div>
 </div>
@@ -1004,8 +1033,23 @@ const DIFFICULTIES={easy:{ko:'쉬움',vi:'Dễ',color:'#66bb6a'},normal:{ko:'보
 const BADGES=[{count:10,icon:'🌱',ko:'첫 걸음',vi:'Bước đầu'},{count:50,icon:'🌿',ko:'성장 중',vi:'Đang lớn'},{count:100,icon:'🌳',ko:'마스터',vi:'Bậc thầy'},{count:200,icon:'🏆',ko:'달인',vi:'Chuyên gia'},{count:500,icon:'👑',ko:'왕',vi:'Vua'}];
 
 // ==================== DATA ====================
-function load(key){try{return JSON.parse(localStorage.getItem(key));}catch{return null;}}
-function save(key,data){localStorage.setItem(key,JSON.stringify(data));}
+// ==================== SHARED STORAGE ====================
+window.storage={
+  _fb:null,_familyCode:null,_listeners:{},
+  set:function(key,data,options){
+    options=options||{};
+    localStorage.setItem(key,JSON.stringify(data));
+    if(options.shared&&this._fb&&this._familyCode){
+      this._fb.ref(this._familyCode+'/'+key).set(data).catch(function(){});
+    }
+  },
+  get:function(key,options){
+    options=options||{};
+    try{return JSON.parse(localStorage.getItem(key));}catch{return null;}
+  }
+};
+function load(key){return window.storage.get(key,{shared:true});}
+function save(key,data){window.storage.set(key,data,{shared:true});}
 
 let words=load(SK.words)||[];
 let expenses=load(SK.expenses)||[];
@@ -1790,6 +1834,156 @@ function showTutorial(){
   renderStep();
 }
 
+// ==================== EXCEL IMPORT ====================
+function importExcel(event){
+  const file=event.target.files[0];if(!file)return;
+  if(typeof XLSX==='undefined'){showToast('Excel 라이브러리를 불러올 수 없습니다','error');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=new Uint8Array(e.target.result);
+      const workbook=XLSX.read(data,{type:'array'});
+      const sheet=workbook.Sheets[workbook.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(sheet,{header:1});
+      let success=0,dup=0,fail=0;
+      for(let i=0;i<rows.length;i++){
+        const row=rows[i];
+        if(!row||row.length<2)continue;
+        const vi=String(row[0]||'').trim();
+        const ko=String(row[1]||'').trim();
+        if(!vi||!ko){fail++;continue;}
+        if(i===0&&(vi.toLowerCase().includes('vietnam')||vi.includes('베트남')||vi.toLowerCase().includes('tiếng')||vi.toLowerCase().includes('viet')))continue;
+        if(words.some(w=>w.vietnamese.toLowerCase()===vi.toLowerCase()&&w.korean===ko)){dup++;continue;}
+        words.unshift({id:Date.now()+i,vietnamese:vi,korean:ko,pronunciation:'',example:'',category:'greeting',difficulty:'easy',learned:false,learnedDate:null,addedDate:todayStr(),quizInclude:true});
+        success++;
+      }
+      save(SK.words,words);renderMyWords();
+      showToast(`성공 ${success}개, 중복 ${dup}개, 실패 ${fail}개`,'success');
+    }catch(err){showToast('파일을 읽을 수 없습니다','error');}
+  };
+  reader.readAsArrayBuffer(file);event.target.value='';
+}
+
+// ==================== SHARING / FIREBASE ====================
+function getShareConfig(){try{return JSON.parse(localStorage.getItem('uridul_share_config'))||{enabled:false,familyCode:'',firebaseUrl:''};}catch{return{enabled:false,familyCode:'',firebaseUrl:''};}}
+function saveShareConfig(cfg){localStorage.setItem('uridul_share_config',JSON.stringify(cfg));}
+
+function toggleSharing(){
+  const cfg=getShareConfig();
+  if(!cfg.enabled){
+    document.getElementById('share-config').style.display='block';
+    document.getElementById('family-code').value=cfg.familyCode||'';
+    document.getElementById('firebase-url').value=cfg.firebaseUrl||'';
+  }else{disconnectSharing();}
+}
+
+function connectSharing(){
+  const code=document.getElementById('family-code').value.trim();
+  const url=document.getElementById('firebase-url').value.trim();
+  if(!code){showToast('가족 코드를 입력하세요!','error');return;}
+  if(!url){showToast('Firebase URL을 입력하세요!','error');return;}
+  try{
+    if(!firebase.apps.length)firebase.initializeApp({databaseURL:url});
+    window.storage._fb=firebase.database();
+    window.storage._familyCode=code;
+    const cfg={enabled:true,familyCode:code,firebaseUrl:url};
+    saveShareConfig(cfg);
+    setupFirebaseListeners(code);
+    uploadAllData(code);
+    document.getElementById('share-toggle').classList.add('on');
+    document.getElementById('share-status').textContent='Đã kết nối / 연결됨 ✅';
+    document.getElementById('share-config').style.display='none';
+    showToast('공유 연결 완료!','success');
+  }catch(err){showToast('연결 실패: '+err.message,'error');}
+}
+
+function disconnectSharing(){
+  if(window.storage._fb&&window.storage._familyCode){
+    Object.values(window.storage._listeners).forEach(function(unsub){if(typeof unsub==='function')unsub();});
+    window.storage._listeners={};
+  }
+  window.storage._fb=null;window.storage._familyCode=null;
+  saveShareConfig({enabled:false,familyCode:'',firebaseUrl:''});
+  document.getElementById('share-toggle').classList.remove('on');
+  document.getElementById('share-status').textContent='Chưa kết nối / 미연결';
+  document.getElementById('share-config').style.display='none';
+  showToast('공유 해제됨','info');
+}
+
+function uploadAllData(code){
+  if(!window.storage._fb)return;
+  const db=window.storage._fb;
+  const sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings];
+  db.ref(code).once('value').then(function(snapshot){
+    const remoteData=snapshot.val();
+    if(remoteData&&Object.keys(remoteData).length>0){
+      sharedKeys.forEach(function(key){
+        if(remoteData[key]!==undefined){
+          localStorage.setItem(key,JSON.stringify(remoteData[key]));
+          refreshFromStorage(key);
+        }
+      });
+      showToast('데이터 동기화 완료!','success');
+    }else{
+      sharedKeys.forEach(function(key){
+        var d=JSON.parse(localStorage.getItem(key)||'null');
+        if(d!==null)db.ref(code+'/'+key).set(d).catch(function(){});
+      });
+    }
+  }).catch(function(){});
+}
+
+var _syncPaused=false;
+function setupFirebaseListeners(code){
+  if(!window.storage._fb)return;
+  var db=window.storage._fb;
+  var sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings];
+  sharedKeys.forEach(function(key){
+    var ref=db.ref(code+'/'+key);
+    var listener=ref.on('value',function(snapshot){
+      if(_syncPaused)return;
+      var data=snapshot.val();
+      if(data!==null){
+        var current=localStorage.getItem(key);
+        var newData=JSON.stringify(data);
+        if(current!==newData){
+          localStorage.setItem(key,newData);
+          refreshFromStorage(key);
+        }
+      }
+    });
+    window.storage._listeners[key]=function(){ref.off('value',listener);};
+  });
+}
+
+function refreshFromStorage(key){
+  _syncPaused=true;
+  if(key===SK.words){words=load(SK.words)||[];renderMyWords();}
+  if(key===SK.expenses){expenses=load(SK.expenses)||[];renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();}
+  if(key===SK.quizStats){quizStats=load(SK.quizStats)||{total:0,correct:0,streak:0,best:0,daily:{},weekly:{},monthly:{}};}
+  if(key===SK.wrongWords){wrongWords=load(SK.wrongWords)||{};}
+  if(key===SK.learned){learnedWords=load(SK.learned)||{};}
+  if(key===SK.budget){loadBudget();}
+  if(key===SK.settings){appSettings=load(SK.settings)||{autoplay:false,quizSource:'all'};}
+  _syncPaused=false;
+}
+
+function initSharing(){
+  var cfg=getShareConfig();
+  if(cfg.enabled&&cfg.firebaseUrl&&cfg.familyCode){
+    try{
+      if(!firebase.apps.length)firebase.initializeApp({databaseURL:cfg.firebaseUrl});
+      window.storage._fb=firebase.database();
+      window.storage._familyCode=cfg.familyCode;
+      setupFirebaseListeners(cfg.familyCode);
+      document.getElementById('share-toggle').classList.add('on');
+      document.getElementById('share-status').textContent='Đã kết nối / 연결됨 ✅';
+    }catch(err){
+      document.getElementById('share-status').textContent='Lỗi kết nối / 연결 오류';
+    }
+  }
+}
+
 // ==================== MIGRATE ====================
 function migrateData(){words.forEach(w=>{if(!w.category)w.category='greeting';if(!w.difficulty)w.difficulty='easy';if(w.quizInclude===undefined)w.quizInclude=true;});save(SK.words,words);}
 
@@ -1811,6 +2005,7 @@ function initApp(){
   updateRateDisplay();loadBudget();updateOnlineStatus();renderRecentSearches();
   if(!load(SK.tutorial))setTimeout(showTutorial,500);
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  initSharing();
 }
 initApp();
 
