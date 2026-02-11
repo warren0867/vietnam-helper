@@ -2648,7 +2648,10 @@ function renderQuizQuestion(){
   }
   const diff=DIFFICULTIES[q.diff]||DIFFICULTIES.easy;
   c.innerHTML=`<div class="card quiz-question-card">
-    <div class="quiz-progress">Câu ${quizState.current+1} / ${quizState.total} <span class="diff-badge diff-${q.diff}">${diff.vi}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitQuiz()" style="font-size:12px;">← 나가기</button>
+      <div class="quiz-progress" style="margin-bottom:0;">Câu ${quizState.current+1} / ${quizState.total} <span class="diff-badge diff-${q.diff}">${diff.vi}</span></div>
+    </div>
     <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" style="width:${(quizState.current/quizState.total)*100}%;background:var(--secondary);"></div></div>
     <div style="font-size:12px;color:var(--text-secondary);">🇻🇳 Tiếng Việt → 🇰🇷 Tiếng Hàn</div>
     <div class="quiz-word">${esc(q.prompt)}</div>
@@ -2682,6 +2685,7 @@ function answerQuiz(idx){
   renderQuizQuestion();
 }
 function nextQuizQuestion(){if(!quizState)return;quizState.current++;renderQuizQuestion();}
+function exitQuiz(){quizState=null;renderQuizMain();}
 
 function renderQuizResult(){
   const c=document.getElementById('quiz-main');if(!quizState)return;
