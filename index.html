@@ -16,7 +16,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 #app-header{position:fixed;top:0;left:0;right:0;height:var(--header-height);background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;z-index:100;box-shadow:0 2px 8px rgba(232,131,109,.3)}
 #app-header .header-sub{font-size:11px;font-weight:400;opacity:.85;margin-top:1px}
 #header-title{text-align:center}
-#app-content{margin-top:var(--header-height);margin-bottom:var(--nav-height);padding:12px 16px 20px;min-height:calc(100vh - var(--header-height) - var(--nav-height))}
+#app-content{margin-top:calc(var(--header-height) + 40px);margin-bottom:var(--nav-height);padding:12px 16px 20px;min-height:calc(100vh - var(--header-height) - 40px - var(--nav-height))}
 .tab-content{display:none;animation:fadeIn .25s ease}.tab-content.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 #bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:var(--card);display:flex;border-top:1px solid var(--border);z-index:100;padding-bottom:env(safe-area-inset-bottom,0);transition:background .3s}
@@ -129,7 +129,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .budget-fill{height:100%;border-radius:6px;transition:width .5s;background:linear-gradient(90deg,var(--accent),#4caf50)}.budget-fill.over{background:linear-gradient(90deg,var(--danger),#ff7043)}
 .budget-alert{background:var(--danger-light);color:var(--danger);padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:12px}
 .currency-display{font-size:12px;color:var(--text-secondary);margin-top:2px}
-.offline-banner{position:fixed;top:var(--header-height);left:0;right:0;background:var(--danger);color:#fff;text-align:center;padding:6px;font-size:12px;font-weight:600;z-index:99;display:none}.offline-banner.show{display:block}
+.offline-banner{position:fixed;top:calc(var(--header-height) + 40px);left:0;right:0;background:var(--danger);color:#fff;text-align:center;padding:6px;font-size:12px;font-weight:600;z-index:99;display:none}.offline-banner.show{display:block}
 .recent-searches{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .recent-chip{padding:5px 10px;border-radius:16px;background:var(--secondary-light);font-size:12px;cursor:pointer;border:none;color:var(--text)}
 .recent-chip:active{opacity:.7}
@@ -160,7 +160,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .spinner{display:inline-block;width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .compare-box{background:var(--secondary-light);border-radius:12px;padding:14px;margin-top:12px}.compare-row{display:flex;justify-content:space-between;font-size:14px;padding:4px 0}.compare-diff{font-weight:700}
-@media(min-width:480px){#app-content{max-width:480px;margin-left:auto;margin-right:auto}#bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}.modal-content{max-width:480px}}
+/* Gamification Bar */
+#gami-bar{position:fixed;top:var(--header-height);left:0;right:0;height:40px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:99;font-size:13px;transition:background .3s}
+#gami-bar .gami-level{font-weight:800;color:var(--primary);font-size:14px}
+#gami-bar .gami-xp-wrap{flex:1;margin:0 10px;max-width:120px}
+#gami-bar .gami-xp-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+#gami-bar .gami-xp-fill{height:100%;background:linear-gradient(90deg,var(--secondary),#ff9800);border-radius:3px;transition:width .5s ease}
+#gami-bar .gami-xp-text{font-size:10px;color:var(--text-secondary);text-align:center;margin-top:1px}
+#gami-bar .gami-streak{font-weight:700;color:#ff6b35}
+#gami-bar .gami-tree{font-size:18px}
+/* Welcome Overlay */
+.welcome-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:400;display:flex;align-items:center;justify-content:center;animation:fadeIn .3s}
+.welcome-card{background:var(--card);border-radius:24px;padding:32px 24px;margin:20px;max-width:340px;text-align:center;animation:slideUp .4s ease}
+.welcome-card .welcome-tree{font-size:64px;display:block;margin-bottom:8px}
+.welcome-card .welcome-streak{font-size:20px;font-weight:800;color:#ff6b35;margin:8px 0}
+.welcome-card .welcome-xp{display:inline-block;background:linear-gradient(90deg,var(--secondary),#ff9800);color:#fff;padding:4px 14px;border-radius:20px;font-size:14px;font-weight:700;margin:8px 0;animation:pulse 1s ease infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.welcome-card .welcome-wotd{background:var(--primary-light);border-radius:12px;padding:12px;margin:12px 0}
+.welcome-card .welcome-wotd-vi{font-size:18px;font-weight:700;color:var(--primary-dark)}
+.welcome-card .welcome-wotd-ko{font-size:15px;color:var(--text);margin-top:2px}
+/* Levelup Toast */
+.levelup-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#ffd700,#ff9800);color:#fff;padding:20px 32px;border-radius:20px;font-size:18px;font-weight:800;z-index:500;text-align:center;box-shadow:0 8px 32px rgba(255,215,0,.4);animation:levelupAnim .6s ease,fadeOut .4s ease 2s forwards}
+@keyframes levelupAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}60%{transform:translate(-50%,-50%) scale(1.1)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes fadeOut{to{opacity:0;transform:translate(-50%,-50%) scale(.8)}}
+/* Mini-game styles */
+.minigame-card{padding:20px;text-align:center;cursor:pointer;transition:transform .2s;border:2px solid var(--border);background:linear-gradient(135deg,var(--card),var(--bg))}
+.minigame-card:active{transform:scale(.97)}.minigame-card .mg-icon{font-size:36px;display:block;margin-bottom:6px}
+.minigame-card .mg-title{font-size:14px;font-weight:700;margin-bottom:3px}.minigame-card .mg-desc{font-size:11px;color:var(--text-secondary)}
+.speed-timer{font-size:32px;font-weight:800;color:var(--danger);text-align:center;margin:8px 0}
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:320px;margin:12px auto}
+.memory-card{aspect-ratio:1;border-radius:12px;border:2px solid var(--border);background:var(--primary);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;padding:4px;text-align:center;word-break:keep-all}
+.memory-card.flipped{background:var(--card);color:var(--text);border-color:var(--primary)}
+.memory-card.matched{background:var(--accent-light);color:var(--accent);border-color:var(--accent);pointer-events:none}
+.fill-input{width:100%;padding:14px;border:2px solid var(--border);border-radius:12px;font-size:18px;text-align:center;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s}
+.fill-input:focus{border-color:var(--primary)}
+/* Partner comparison */
+.partner-compare{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-top:12px}
+.partner-col{text-align:center;padding:12px;border-radius:12px;background:var(--bg)}
+.partner-col .pc-name{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+.partner-col .pc-value{font-size:20px;font-weight:800}
+.partner-vs{font-size:16px;font-weight:800;color:var(--primary)}
+.partner-msg{text-align:center;padding:10px;background:var(--secondary-light);border-radius:10px;margin-top:8px;font-size:13px;font-weight:600}
+/* Weekly report modal */
+.weekly-stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.weekly-stat:last-child{border-bottom:none}
+.weekly-stat .ws-label{color:var(--text-secondary);font-size:14px}.weekly-stat .ws-value{font-weight:700;font-size:16px}
+@media(min-width:480px){#app-content{max-width:480px;margin-left:auto;margin-right:auto}#bottom-nav{max-width:480px;left:50%;transform:translateX(-50%)}.modal-content{max-width:480px}#gami-bar{max-width:480px;left:50%;transform:translateX(-50%)}}
 </style>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -175,7 +220,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 </header>
 
+<div id="gami-bar">
+<span class="gami-level" id="gami-level">Lv.0</span>
+<div class="gami-xp-wrap"><div class="gami-xp-bar"><div class="gami-xp-fill" id="gami-xp-fill" style="width:0%"></div></div><div class="gami-xp-text" id="gami-xp-text">0/100 XP</div></div>
+<span class="gami-streak" id="gami-streak">🔥0</span>
+<span class="gami-tree" id="gami-tree">🌰</span>
+</div>
+
 <div class="offline-banner" id="offline-banner">Ngoại tuyến / 오프라인 상태입니다</div>
+
+<div id="welcome-overlay" class="welcome-overlay" style="display:none"></div>
+
+<div id="weekly-report-modal" class="modal-overlay">
+<div class="modal-content">
+<div class="modal-header"><h3>📊 Báo cáo tuần / 주간 리포트</h3><button class="modal-close" onclick="closeModal('weekly-report-modal')">✕</button></div>
+<div id="weekly-report-content"></div>
+</div>
+</div>
 
 <div id="tutorial-overlay" class="tutorial-overlay" style="display:none">
 <div class="tutorial-card">
@@ -355,7 +416,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
 <h3 style="margin-bottom:14px;">ℹ️ Thông tin / 정보</h3>
 <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;">
-<div>📱 우리들 / Chúng ta v3.1</div>
+<div>📱 우리들 / Chúng ta v4.0</div>
 <div>🇻🇳🇰🇷 Ứng dụng học tiếng Hàn / 한국어 학습 앱</div>
 <div>📚 1500 từ TOPIK cơ bản / TOPIK 기본 1500단어</div>
 </div>
@@ -2040,7 +2101,7 @@ const BUILTIN_WORDS = [
 
 
 // ==================== CONSTANTS ====================
-const SK={words:'uridul_words',expenses:'uridul_expenses',quiz:'uridul_quiz',quizStats:'uridul_quiz_stats',theme:'uridul_theme',rate:'uridul_rate',budget:'uridul_budget',version:'uridul_version',wrongWords:'uridul_wrong',recentSearch:'uridul_recent_search',settings:'uridul_settings',tutorial:'uridul_tutorial',learned:'uridul_learned'};
+const SK={words:'uridul_words',expenses:'uridul_expenses',quiz:'uridul_quiz',quizStats:'uridul_quiz_stats',theme:'uridul_theme',rate:'uridul_rate',budget:'uridul_budget',version:'uridul_version',wrongWords:'uridul_wrong',recentSearch:'uridul_recent_search',settings:'uridul_settings',tutorial:'uridul_tutorial',learned:'uridul_learned',attendance:'uridul_attendance',xp:'uridul_xp',miniGameStats:'uridul_minigame',partnerData:'uridul_partner'};
 const DEFAULT_RATE=19.5;
 const CAT_KEYS=['greeting','food','family','emotion','number','shopping','transport','hospital','school','work','hobby','weather','time','place','action','adjective'];
 const WORD_CATS={
@@ -2088,6 +2149,10 @@ let editPayment='cash';
 let currentWordCatFilter='all',builtinCatFilter='all';
 let searchTimer=null;
 let recentQuizIds=[];
+let attendanceData=load(SK.attendance)||{streak:0,lastDate:null,totalDays:0,history:[]};
+let xpData=load(SK.xp)||{total:0,level:0};
+let miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},match:{played:0,bestTime:999},fill:{played:0,correct:0,total:0}};
+let partnerData=null;
 
 // ==================== BUILTIN WORDS HELPER ====================
 function getBuiltinObj(bw){return{id:'b_'+BUILTIN_WORDS.indexOf(bw),vietnamese:bw[0],korean:bw[1],pronunciation:bw[2],category:CAT_KEYS[bw[3]],difficulty:DIFF_KEYS[bw[4]],isBuiltin:true};}
@@ -2147,7 +2212,7 @@ function switchTab(el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('header-sub').textContent=headerSubs[id];
-  if(id==='tab-dictionary')renderWOTD();
+  if(id==='tab-dictionary')renderEnhancedWOTD();
   if(id==='tab-quiz')renderQuizMain();
   if(id==='tab-expenses'){renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();}
   if(id==='tab-settings'){updateRateDisplay();loadBudget();}
@@ -2489,7 +2554,29 @@ function renderQuizMain(){
       <div class="quiz-mode-title">Ôn từ sai / 틀린 단어 복습</div>
       <div class="quiz-mode-desc">${wrongCount>0?`${wrongCount} từ cần ôn / ${wrongCount}개 복습 필요`:'Chưa có từ sai / 틀린 단어 없음'}</div>
     </div>
-    <div class="card" style="margin-top:8px;">
+    <div style="margin-top:16px;margin-bottom:8px;"><h3 style="font-size:15px;">🎮 미니게임</h3></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      <div class="card minigame-card" onclick="startSpeedQuiz()">
+        <span class="mg-icon">⚡</span>
+        <div class="mg-title">스피드 퀴즈</div>
+        <div class="mg-desc">30초 도전!</div>
+        ${miniGameStats.speed.bestScore>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.speed.bestScore}</div>`:''}
+      </div>
+      <div class="card minigame-card" onclick="startCardMatch()">
+        <span class="mg-icon">🃏</span>
+        <div class="mg-title">카드 매칭</div>
+        <div class="mg-desc">짝 맞추기</div>
+        ${miniGameStats.match.bestTime<999?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.match.bestTime}초</div>`:''}
+      </div>
+      <div class="card minigame-card" onclick="startFillBlank()">
+        <span class="mg-icon">✏️</span>
+        <div class="mg-title">빈칸 채우기</div>
+        <div class="mg-desc">직접 입력!</div>
+        ${miniGameStats.fill.played>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">${miniGameStats.fill.total>0?Math.round((miniGameStats.fill.correct/miniGameStats.fill.total)*100):0}%</div>`:''}
+      </div>
+    </div>
+    <div id="partner-compare-section"></div>
+    <div class="card" style="margin-top:12px;">
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">📚 Phạm vi / 출제 범위</div>
       <div class="quiz-source-group">
         <button class="source-chip ${appSettings.quizSource==='all'?'active':''}" onclick="setQuizSource('all')">Tất cả / 모두</button>
@@ -2590,6 +2677,7 @@ function answerQuiz(idx){
   if(q.userAnswer===q.correct){
     quizState.score++;
     learnedWords[q.wordId]=true;save(SK.learned,learnedWords);
+    addXP(10);
     // Remove from wrong words if present
     if(wrongWords[q.wordId]){delete wrongWords[q.wordId];save(SK.wrongWords,wrongWords);}
   }else{
@@ -2609,6 +2697,7 @@ function renderQuizResult(){
     <h3>${quizState.mode==='daily'?'Câu đố hôm nay / 오늘 퀴즈':'Kết quả / 결과'}</h3>
     <div class="quiz-score">${quizState.score} / ${quizState.total}</div>
     <p style="color:var(--text-secondary);font-size:14px;">${Math.round((quizState.score/quizState.total)*100)}% chính xác / 정답률</p>
+    <div style="margin:8px 0;"><span style="background:linear-gradient(90deg,var(--secondary),#ff9800);color:#fff;padding:4px 12px;border-radius:16px;font-size:13px;font-weight:700;">+${quizState.score*10}${quizState.score===quizState.total?' +50 bonus':''} XP ✨</span></div>
     ${wrongs.length>0?`
       <div style="text-align:left;margin-top:16px;">
         <div style="font-size:14px;font-weight:700;margin-bottom:8px;">❌ Từ sai / 틀린 단어 (${wrongs.length})</div>
@@ -2635,7 +2724,7 @@ function addWrongsToMyWords(){
 function updateQuizStats(qs){
   const today=todayStr();
   quizStats.total+=qs.total;quizStats.correct+=qs.score;
-  if(qs.score===qs.total){quizStats.streak++;quizStats.best=Math.max(quizStats.best,quizStats.streak);}else quizStats.streak=0;
+  if(qs.score===qs.total){quizStats.streak++;quizStats.best=Math.max(quizStats.best,quizStats.streak);addXP(50);}else quizStats.streak=0;
   if(!quizStats.daily)quizStats.daily={};if(!quizStats.daily[today])quizStats.daily[today]={c:0,t:0};
   quizStats.daily[today].c+=qs.score;quizStats.daily[today].t+=qs.total;
   const wk=getWeekKey(today);if(!quizStats.weekly)quizStats.weekly={};if(!quizStats.weekly[wk])quizStats.weekly[wk]={c:0,t:0};
@@ -2929,7 +3018,7 @@ function disconnectSharing(){
 function uploadAllData(code){
   if(!window.storage._fb)return;
   const db=window.storage._fb;
-  const sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings];
+  const sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings,SK.attendance,SK.xp,SK.miniGameStats];
   db.ref(code).once('value').then(function(snapshot){
     const remoteData=snapshot.val();
     if(remoteData&&Object.keys(remoteData).length>0){
@@ -2953,7 +3042,7 @@ var _syncPaused=false;
 function setupFirebaseListeners(code){
   if(!window.storage._fb)return;
   var db=window.storage._fb;
-  var sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings];
+  var sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings,SK.attendance,SK.xp,SK.miniGameStats];
   sharedKeys.forEach(function(key){
     var ref=db.ref(code+'/'+key);
     var listener=ref.on('value',function(snapshot){
@@ -2981,6 +3070,9 @@ function refreshFromStorage(key){
   if(key===SK.learned){learnedWords=load(SK.learned)||{};}
   if(key===SK.budget){loadBudget();}
   if(key===SK.settings){appSettings=load(SK.settings)||{autoplay:false,quizSource:'all'};}
+  if(key===SK.attendance){attendanceData=load(SK.attendance)||{streak:0,lastDate:null,totalDays:0,history:[]};renderGamiBar();}
+  if(key===SK.xp){xpData=load(SK.xp)||{total:0,level:0};renderGamiBar();}
+  if(key===SK.miniGameStats){miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},match:{played:0,bestTime:999},fill:{played:0,correct:0,total:0}};}
   _syncPaused=false;
 }
 
@@ -3003,25 +3095,446 @@ function initSharing(){
 // ==================== MIGRATE ====================
 function migrateData(){words.forEach(w=>{if(!w.category)w.category='greeting';if(!w.difficulty)w.difficulty='easy';if(w.quizInclude===undefined)w.quizInclude=true;});save(SK.words,words);}
 
+// ==================== GAMIFICATION: XP & LEVEL ====================
+const TREE_STAGES=['🌰','🌱','🌿','🪴','🌳','🌲','🎄','🏆'];
+function getLevel(xp){return Math.floor(Math.sqrt(xp/100));}
+function getXPForLevel(lvl){return lvl*lvl*100;}
+function getTree(level){return TREE_STAGES[Math.min(level,TREE_STAGES.length-1)];}
+
+function addXP(amount){
+  const oldLevel=xpData.level;
+  xpData.total+=amount;
+  xpData.level=getLevel(xpData.total);
+  // Track weekly XP
+  const wk=getWeekKey(todayStr());
+  if(!xpData.weekly)xpData.weekly={};
+  xpData.weekly[wk]=(xpData.weekly[wk]||0)+amount;
+  save(SK.xp,xpData);
+  renderGamiBar();
+  if(xpData.level>oldLevel)showLevelUpToast(xpData.level);
+  // Upload to Firebase if sharing
+  uploadPlayerData();
+}
+
+function showLevelUpToast(level){
+  const t=document.createElement('div');
+  t.className='levelup-toast';
+  t.innerHTML=`⬆️ Level Up!<br>Lv.${level} ${getTree(level)}`;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2600);
+}
+
+function renderGamiBar(){
+  const lvl=xpData.level;
+  const currentLevelXP=getXPForLevel(lvl);
+  const nextLevelXP=getXPForLevel(lvl+1);
+  const progress=nextLevelXP>currentLevelXP?((xpData.total-currentLevelXP)/(nextLevelXP-currentLevelXP))*100:0;
+  const el=id=>document.getElementById(id);
+  el('gami-level').textContent='Lv.'+lvl;
+  el('gami-xp-fill').style.width=Math.min(progress,100)+'%';
+  el('gami-xp-text').textContent=(xpData.total-currentLevelXP)+'/'+(nextLevelXP-currentLevelXP)+' XP';
+  el('gami-streak').textContent='🔥'+attendanceData.streak;
+  el('gami-tree').textContent=getTree(lvl);
+}
+
+// ==================== GAMIFICATION: ATTENDANCE ====================
+function checkAttendance(){
+  const today=todayStr();
+  if(attendanceData.lastDate===today)return false; // Already checked today
+  const yesterday=toDateStr(new Date(Date.now()-86400000));
+  if(attendanceData.lastDate===yesterday){
+    attendanceData.streak++;
+  }else if(attendanceData.lastDate){
+    attendanceData.streak=1;
+  }else{
+    attendanceData.streak=1;
+  }
+  attendanceData.lastDate=today;
+  attendanceData.totalDays++;
+  if(!attendanceData.history)attendanceData.history=[];
+  attendanceData.history.push(today);
+  if(attendanceData.history.length>365)attendanceData.history=attendanceData.history.slice(-365);
+  save(SK.attendance,attendanceData);
+  addXP(20);
+  return true; // New day
+}
+
+// ==================== GAMIFICATION: WELCOME OVERLAY ====================
+function showWelcomeOverlay(){
+  const overlay=document.getElementById('welcome-overlay');
+  const today=todayStr();
+  const seed=today.split('-').reduce((a,b)=>a+parseInt(b),0);
+  const wotdIdx=seed%BUILTIN_WORDS.length;
+  const w=BUILTIN_WORDS[wotdIdx];
+  const tree=getTree(xpData.level);
+  overlay.innerHTML=`<div class="welcome-card">
+    <span class="welcome-tree">${tree}</span>
+    <h2>Xin chào! 안녕!</h2>
+    <div class="welcome-streak">🔥 ${attendanceData.streak}일 연속 출석!</div>
+    <div class="welcome-xp">+20 XP ✨</div>
+    <div class="welcome-wotd">
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">📖 오늘의 단어</div>
+      <div class="welcome-wotd-vi">${esc(w[0])}</div>
+      <div class="welcome-wotd-ko">${esc(w[1])}</div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="closeWelcome()" style="margin-top:12px;">시작하기! 🚀</button>
+  </div>`;
+  overlay.style.display='flex';
+}
+function closeWelcome(){document.getElementById('welcome-overlay').style.display='none';}
+
+// ==================== GAMIFICATION: ENHANCED WOTD ====================
+function renderEnhancedWOTD(){
+  const c=document.getElementById('wotd-container');if(!c)return;
+  const today=todayStr();const seed=today.split('-').reduce((a,b)=>a+parseInt(b),0);
+  const idx=seed%BUILTIN_WORDS.length;const w=BUILTIN_WORDS[idx];
+  const wotdKey='uridul_wotd_learned_'+today;
+  const alreadyLearned=localStorage.getItem(wotdKey)==='true';
+  c.innerHTML=`<div class="wotd-card" onclick="speak('${esc(w[1])}','ko-KR')">
+    <div class="wotd-label">📖 Từ hôm nay / 오늘의 단어</div>
+    <div class="wotd-vi" style="font-size:28px;">${esc(w[0])}</div>
+    <div class="wotd-ko" style="font-size:22px;">${esc(w[1])}</div>
+    <div class="wotd-pron">🗣️ ${esc(w[2])}</div>
+    <div style="margin-top:10px;">
+      ${alreadyLearned?'<span style="font-size:13px;opacity:.8;">✅ 배웠어요!</span>':`<button class="btn btn-sm" style="background:rgba(255,255,255,.25);color:#fff;border:1px solid rgba(255,255,255,.4);" onclick="event.stopPropagation();learnWOTD();">배웠어요! +5 XP ✨</button>`}
+    </div>
+  </div>`;
+}
+function learnWOTD(){
+  const today=todayStr();
+  localStorage.setItem('uridul_wotd_learned_'+today,'true');
+  addXP(5);
+  renderEnhancedWOTD();
+  showToast('+5 XP! 오늘의 단어 학습 완료!','success');
+}
+
+// ==================== MINI-GAME: SPEED QUIZ ====================
+let speedQuizState=null;
+function startSpeedQuiz(){
+  const pool=getAllQuizWords();
+  if(pool.length<4){showToast('최소 4개 단어 필요!','error');return;}
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+  speedQuizState={pool:shuffled,score:0,current:0,timeLeft:30,timer:null,answered:false};
+  speedQuizState.timer=setInterval(()=>{
+    speedQuizState.timeLeft--;
+    const el=document.getElementById('speed-timer');
+    if(el)el.textContent=speedQuizState.timeLeft+'s';
+    if(speedQuizState.timeLeft<=0){clearInterval(speedQuizState.timer);endSpeedQuiz();}
+  },1000);
+  renderSpeedQuizQuestion();
+}
+function renderSpeedQuizQuestion(){
+  const c=document.getElementById('quiz-main');const s=speedQuizState;if(!s)return;
+  if(s.current>=s.pool.length)s.current=0; // cycle
+  const w=s.pool[s.current];
+  const pool=getAllQuizWords();
+  const wrongs=pool.filter(x=>x.korean!==w.korean).sort(()=>Math.random()-.5).slice(0,3);
+  const options=[...wrongs.map(x=>x.korean),w.korean].sort(()=>Math.random()-.5);
+  s.answered=false;
+  c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:16px;font-weight:700;">⚡ 스피드 퀴즈</span>
+      <span style="font-size:14px;font-weight:700;color:var(--accent);">점수: ${s.score}</span>
+    </div>
+    <div class="speed-timer" id="speed-timer">${s.timeLeft}s</div>
+    <div class="quiz-word">${esc(w.vietnamese)}</div>
+    <div class="quiz-options">
+      ${options.map((opt,i)=>`<button class="quiz-option" id="speed-opt-${i}" onclick="answerSpeedQuiz(${i},'${esc(opt).replace(/'/g,"\\'")}','${esc(w.korean).replace(/'/g,"\\'")}')">${esc(opt)}</button>`).join('')}
+    </div>
+  </div>`;
+}
+function answerSpeedQuiz(idx,chosen,correct){
+  if(!speedQuizState||speedQuizState.answered)return;
+  speedQuizState.answered=true;
+  const isCorrect=chosen===correct;
+  const el=document.getElementById('speed-opt-'+idx);
+  if(isCorrect){el.classList.add('correct');speedQuizState.score++;addXP(5);}
+  else el.classList.add('wrong');
+  setTimeout(()=>{speedQuizState.current++;renderSpeedQuizQuestion();},500);
+}
+function endSpeedQuiz(){
+  const s=speedQuizState;if(!s)return;
+  miniGameStats.speed.played++;
+  miniGameStats.speed.bestScore=Math.max(miniGameStats.speed.bestScore,s.score);
+  save(SK.miniGameStats,miniGameStats);
+  if(s.score>=10)addXP(30);
+  else if(s.score>=5)addXP(15);
+  const c=document.getElementById('quiz-main');
+  c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+    <span style="font-size:48px;display:block;margin-bottom:12px;">⚡</span>
+    <h3>스피드 퀴즈 결과!</h3>
+    <div class="quiz-score">${s.score}</div>
+    <p style="color:var(--text-secondary);">30초 동안 ${s.score}개 정답!</p>
+    <p style="color:var(--text-secondary);font-size:13px;">최고 기록: ${miniGameStats.speed.bestScore}개</p>
+    <button class="btn btn-primary btn-full" onclick="speedQuizState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
+  </div>`;
+  speedQuizState=null;
+  uploadPlayerData();
+}
+
+// ==================== MINI-GAME: CARD MATCHING ====================
+let matchState=null;
+function startCardMatch(){
+  const pool=getAllQuizWords();
+  if(pool.length<6){showToast('최소 6개 단어 필요!','error');return;}
+  const selected=[...pool].sort(()=>Math.random()-.5).slice(0,6);
+  const cards=[];
+  selected.forEach((w,i)=>{
+    cards.push({id:i*2,pairId:i,text:w.vietnamese,type:'vi',flipped:false,matched:false});
+    cards.push({id:i*2+1,pairId:i,text:w.korean,type:'ko',flipped:false,matched:false});
+  });
+  matchState={cards:cards.sort(()=>Math.random()-.5),flippedIds:[],matchedPairs:0,totalPairs:6,moves:0,startTime:Date.now()};
+  renderCardMatch();
+}
+function renderCardMatch(){
+  const c=document.getElementById('quiz-main');const s=matchState;if(!s)return;
+  c.innerHTML=`<div class="card" style="padding:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:16px;font-weight:700;">🃏 카드 매칭</span>
+      <span style="font-size:14px;color:var(--text-secondary);">${s.matchedPairs}/${s.totalPairs} | ${s.moves}회</span>
+    </div>
+    <div class="memory-grid">
+      ${s.cards.map(card=>`<div class="memory-card ${card.flipped||card.matched?'flipped':''} ${card.matched?'matched':''}" onclick="flipCard(${card.id})">${card.flipped||card.matched?esc(card.text):'?'}</div>`).join('')}
+    </div>
+  </div>`;
+}
+function flipCard(cardId){
+  const s=matchState;if(!s)return;
+  const card=s.cards.find(c=>c.id===cardId);
+  if(!card||card.flipped||card.matched||s.flippedIds.length>=2)return;
+  card.flipped=true;s.flippedIds.push(cardId);
+  renderCardMatch();
+  if(s.flippedIds.length===2){
+    s.moves++;
+    const[c1,c2]=[s.cards.find(c=>c.id===s.flippedIds[0]),s.cards.find(c=>c.id===s.flippedIds[1])];
+    if(c1.pairId===c2.pairId){
+      c1.matched=true;c2.matched=true;s.matchedPairs++;s.flippedIds=[];
+      renderCardMatch();
+      if(s.matchedPairs===s.totalPairs)endCardMatch();
+    }else{
+      setTimeout(()=>{c1.flipped=false;c2.flipped=false;s.flippedIds=[];renderCardMatch();},800);
+    }
+  }
+}
+function endCardMatch(){
+  const elapsed=Math.round((Date.now()-matchState.startTime)/1000);
+  miniGameStats.match.played++;
+  miniGameStats.match.bestTime=Math.min(miniGameStats.match.bestTime,elapsed);
+  save(SK.miniGameStats,miniGameStats);
+  addXP(20);
+  setTimeout(()=>{
+    const c=document.getElementById('quiz-main');
+    c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+      <span style="font-size:48px;display:block;margin-bottom:12px;">🃏</span>
+      <h3>카드 매칭 완료!</h3>
+      <div class="quiz-score">${elapsed}초</div>
+      <p style="color:var(--text-secondary);">${matchState.moves}회 시도로 완료!</p>
+      <p style="color:var(--text-secondary);font-size:13px;">최고 기록: ${miniGameStats.match.bestTime===999?'-':miniGameStats.match.bestTime+'초'}</p>
+      <button class="btn btn-primary btn-full" onclick="matchState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
+    </div>`;
+    matchState=null;
+    uploadPlayerData();
+  },600);
+}
+
+// ==================== MINI-GAME: FILL IN BLANK ====================
+let fillState=null;
+function startFillBlank(){
+  const pool=getAllQuizWords();
+  if(pool.length<4){showToast('최소 4개 단어 필요!','error');return;}
+  const selected=[...pool].sort(()=>Math.random()-.5).slice(0,10);
+  fillState={questions:selected,current:0,score:0,total:selected.length};
+  renderFillQuestion();
+}
+function renderFillQuestion(){
+  const c=document.getElementById('quiz-main');const s=fillState;if(!s)return;
+  if(s.current>=s.total){endFillBlank();return;}
+  const w=s.questions[s.current];
+  c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
+    <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+      <span style="font-size:16px;font-weight:700;">✏️ 빈칸 채우기</span>
+      <span style="font-size:14px;color:var(--text-secondary);">${s.current+1}/${s.total}</span>
+    </div>
+    <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" style="width:${(s.current/s.total)*100}%;background:var(--secondary);"></div></div>
+    <p style="font-size:15px;color:var(--text-secondary);margin-bottom:8px;">'${esc(w.vietnamese)}'의 한국어는?</p>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">🗣️ ${esc(w.pronunciation||'')}</div>
+    <input class="fill-input" id="fill-answer" type="text" placeholder="한국어 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')checkFillAnswer()">
+    <button class="btn btn-primary btn-full" onclick="checkFillAnswer()" style="margin-top:12px;">확인</button>
+    <div id="fill-feedback" style="margin-top:12px;"></div>
+  </div>`;
+  setTimeout(()=>{const inp=document.getElementById('fill-answer');if(inp)inp.focus();},100);
+}
+function checkFillAnswer(){
+  const s=fillState;if(!s)return;
+  const w=s.questions[s.current];
+  const answer=(document.getElementById('fill-answer').value||'').trim();
+  const fb=document.getElementById('fill-feedback');
+  if(!answer){showToast('답을 입력하세요!','error');return;}
+  const correct=answer===w.korean;
+  if(correct){s.score++;addXP(10);fb.innerHTML=`<p style="color:var(--accent);font-weight:700;">✅ 정답! +10 XP</p>`;}
+  else fb.innerHTML=`<p style="color:var(--danger);font-weight:700;">❌ 오답! 정답: ${esc(w.korean)}</p>`;
+  document.getElementById('fill-answer').disabled=true;
+  setTimeout(()=>{s.current++;renderFillQuestion();},1200);
+}
+function endFillBlank(){
+  miniGameStats.fill.played++;
+  miniGameStats.fill.correct+=fillState.score;
+  miniGameStats.fill.total+=fillState.total;
+  save(SK.miniGameStats,miniGameStats);
+  if(fillState.score===fillState.total)addXP(30);
+  const c=document.getElementById('quiz-main');
+  c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+    <span style="font-size:48px;display:block;margin-bottom:12px;">✏️</span>
+    <h3>빈칸 채우기 결과!</h3>
+    <div class="quiz-score">${fillState.score} / ${fillState.total}</div>
+    <p style="color:var(--text-secondary);">${Math.round((fillState.score/fillState.total)*100)}% 정답률</p>
+    <button class="btn btn-primary btn-full" onclick="fillState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
+  </div>`;
+  fillState=null;
+  uploadPlayerData();
+}
+
+// ==================== COUPLE BATTLE ====================
+function getDeviceId(){
+  let id=localStorage.getItem('uridul_device_id');
+  if(!id){id='dev_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);localStorage.setItem('uridul_device_id',id);}
+  return id;
+}
+function uploadPlayerData(){
+  if(!window.storage._fb||!window.storage._familyCode)return;
+  const db=window.storage._fb;
+  const code=window.storage._familyCode;
+  const deviceId=getDeviceId();
+  const data={
+    deviceId,
+    xp:xpData.total,
+    level:xpData.level,
+    streak:attendanceData.streak,
+    totalDays:attendanceData.totalDays,
+    quizTotal:quizStats.total,
+    quizCorrect:quizStats.correct,
+    learnedCount:Object.keys(learnedWords).length,
+    weeklyXP:getWeeklyXP(),
+    lastActive:todayStr(),
+    tree:getTree(xpData.level)
+  };
+  db.ref(code+'/players/'+deviceId).set(data).catch(function(){});
+}
+function getWeeklyXP(){
+  // Simple: store weekly XP in xpData
+  const wk=getWeekKey(todayStr());
+  if(!xpData.weekly)xpData.weekly={};
+  return xpData.weekly[wk]||0;
+}
+function setupPartnerListener(){
+  if(!window.storage._fb||!window.storage._familyCode)return;
+  const db=window.storage._fb;
+  const code=window.storage._familyCode;
+  const myId=getDeviceId();
+  db.ref(code+'/players').on('value',function(snapshot){
+    const players=snapshot.val();
+    if(!players)return;
+    const others=Object.values(players).filter(p=>p.deviceId!==myId);
+    if(others.length>0){
+      partnerData=others[0]; // First partner
+      save(SK.partnerData,partnerData);
+      renderPartnerCompare();
+    }
+  });
+}
+function renderPartnerCompare(){
+  const el=document.getElementById('partner-compare-section');
+  if(!el)return;
+  if(!partnerData){el.innerHTML='';return;}
+  const myLvl=xpData.level;const pLvl=partnerData.level||0;
+  const myStreak=attendanceData.streak;const pStreak=partnerData.streak||0;
+  const myLearned=Object.keys(learnedWords).length;const pLearned=partnerData.learnedCount||0;
+  const diff=myLearned-pLearned;
+  let msg='';
+  if(diff>0)msg=`🎉 상대보다 ${diff}단어 더 배웠어요!`;
+  else if(diff<0)msg=`💪 상대가 ${Math.abs(diff)}단어 더 배웠어요! 힘내세요!`;
+  else msg='🤝 같은 수의 단어를 배웠어요!';
+  el.innerHTML=`<div class="card">
+    <h3 style="font-size:15px;margin-bottom:12px;">💑 커플 대결</h3>
+    <div class="partner-compare">
+      <div class="partner-col"><div class="pc-name">나</div><div class="pc-value">${getTree(myLvl)} Lv.${myLvl}</div><div style="font-size:12px;color:var(--text-secondary);">🔥${myStreak} | 📚${myLearned}</div></div>
+      <div class="partner-vs">VS</div>
+      <div class="partner-col"><div class="pc-name">파트너</div><div class="pc-value">${partnerData.tree||'🌰'} Lv.${pLvl}</div><div style="font-size:12px;color:var(--text-secondary);">🔥${pStreak} | 📚${pLearned}</div></div>
+    </div>
+    <div class="partner-msg">${msg}</div>
+  </div>`;
+}
+
+// ==================== WEEKLY REPORT ====================
+function checkWeeklyReport(){
+  const now=new Date();
+  if(now.getDay()!==1)return; // Monday only
+  const reportKey='uridul_weekly_shown_'+getWeekKey(todayStr());
+  if(localStorage.getItem(reportKey))return;
+  localStorage.setItem(reportKey,'true');
+  showWeeklyReport();
+}
+function showWeeklyReport(){
+  const wk=getWeekKey(todayStr());
+  const ws=quizStats.weekly?.[wk]||{c:0,t:0};
+  const wAcc=ws.t>0?Math.round((ws.c/ws.t)*100):0;
+  const learnedCount=Object.keys(learnedWords).length;
+  const content=document.getElementById('weekly-report-content');
+  let partnerHtml='';
+  if(partnerData){
+    partnerHtml=`<div style="margin-top:16px;">
+      <h4 style="font-size:14px;margin-bottom:8px;">💑 파트너 비교</h4>
+      <div class="weekly-stat"><span class="ws-label">파트너 레벨</span><span class="ws-value">Lv.${partnerData.level||0}</span></div>
+      <div class="weekly-stat"><span class="ws-label">파트너 출석</span><span class="ws-value">🔥${partnerData.streak||0}일</span></div>
+      <div class="weekly-stat"><span class="ws-label">파트너 배운 단어</span><span class="ws-value">${partnerData.learnedCount||0}개</span></div>
+    </div>`;
+  }
+  content.innerHTML=`<div style="text-align:center;margin-bottom:16px;">
+    <span style="font-size:48px;display:block;">📊</span>
+    <h3>이번 주 리포트</h3>
+  </div>
+  <div class="weekly-stat"><span class="ws-label">📚 배운 단어</span><span class="ws-value">${learnedCount}개</span></div>
+  <div class="weekly-stat"><span class="ws-label">🎯 퀴즈 횟수</span><span class="ws-value">${ws.t}문제</span></div>
+  <div class="weekly-stat"><span class="ws-label">✅ 정답률</span><span class="ws-value">${wAcc}%</span></div>
+  <div class="weekly-stat"><span class="ws-label">🔥 출석 스트릭</span><span class="ws-value">${attendanceData.streak}일</span></div>
+  <div class="weekly-stat"><span class="ws-label">⭐ 총 XP</span><span class="ws-value">${xpData.total} XP</span></div>
+  <div class="weekly-stat"><span class="ws-label">🌳 나무</span><span class="ws-value">${getTree(xpData.level)}</span></div>
+  ${partnerHtml}
+  <button class="btn btn-primary btn-full" onclick="closeModal('weekly-report-modal')" style="margin-top:16px;">확인!</button>`;
+  document.getElementById('weekly-report-modal').classList.add('show');
+}
+
 // ==================== INIT ====================
 function initApp(){
   initTheme();
   const ver=localStorage.getItem(SK.version);
   if(ver&&parseInt(ver)<3)migrateData();
-  localStorage.setItem(SK.version,'3');
+  localStorage.setItem(SK.version,'4');
   words=load(SK.words)||[];expenses=load(SK.expenses)||[];
   quizStats=load(SK.quizStats)||{total:0,correct:0,streak:0,best:0,daily:{},weekly:{},monthly:{}};
   wrongWords=load(SK.wrongWords)||{};learnedWords=load(SK.learned)||{};
   appSettings=load(SK.settings)||{autoplay:false,quizSource:'all'};
+  attendanceData=load(SK.attendance)||{streak:0,lastDate:null,totalDays:0,history:[]};
+  xpData=load(SK.xp)||{total:0,level:0};
+  miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},match:{played:0,bestTime:999},fill:{played:0,correct:0,total:0}};
+  partnerData=load(SK.partnerData)||null;
   const now=new Date();calYear=now.getFullYear();calMonth=now.getMonth();
   document.getElementById('exp-date').value=toDateStr(now);
   document.getElementById('autoplay-toggle')?.classList.toggle('on',appSettings.autoplay);
-  loadRate();renderExpCatGrid();renderMyWords();renderWOTD();renderQuizMain();
+  // Gamification: check attendance & render bar
+  const isNewDay=checkAttendance();
+  renderGamiBar();
+  loadRate();renderExpCatGrid();renderMyWords();renderEnhancedWOTD();renderQuizMain();
   renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();
   updateRateDisplay();loadBudget();updateOnlineStatus();renderRecentSearches();
   if(!load(SK.tutorial))setTimeout(showTutorial,500);
+  else if(isNewDay)setTimeout(showWelcomeOverlay,300);
   if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
   initSharing();
+  // Partner listener after sharing init
+  setTimeout(()=>{setupPartnerListener();uploadPlayerData();},1000);
+  // Weekly report
+  setTimeout(checkWeeklyReport,1500);
 }
 initApp();
 
