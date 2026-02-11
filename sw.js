@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uridul-v6';
+const CACHE_NAME = 'uridul-v7';
 const STATIC_ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', event => {
@@ -39,7 +39,23 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache-first for static assets
+  // Network-first for HTML (always get latest version)
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request).then(r => r || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Cache-first for other static assets
   event.respondWith(
     caches.match(event.request)
       .then(response => {

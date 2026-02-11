@@ -3549,7 +3549,16 @@ function initApp(){
   updateRateDisplay();loadBudget();updateOnlineStatus();renderRecentSearches();
   if(!load(SK.tutorial))setTimeout(showTutorial,500);
   else if(isNewDay)setTimeout(showWelcomeOverlay,300);
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(reg=>{
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='activated'){showToast('새 버전 적용 중...','info');setTimeout(()=>location.reload(),1000);}
+        });
+      });
+    }).catch(()=>{});
+  }
   initSharing();
   // Partner listener after sharing init
   setTimeout(()=>{setupPartnerListener();uploadPlayerData();},1000);
