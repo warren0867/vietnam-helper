@@ -2686,6 +2686,9 @@ function answerQuiz(idx){
 }
 function nextQuizQuestion(){if(!quizState)return;quizState.current++;renderQuizQuestion();}
 function exitQuiz(){quizState=null;renderQuizMain();}
+function exitSpeedQuiz(){if(speedQuizState&&speedQuizState.timer)clearInterval(speedQuizState.timer);speedQuizState=null;renderQuizMain();}
+function exitCardMatch(){matchState=null;renderQuizMain();}
+function exitFillBlank(){fillState=null;renderQuizMain();}
 
 function renderQuizResult(){
   const c=document.getElementById('quiz-main');if(!quizState)return;
@@ -3232,6 +3235,7 @@ function renderSpeedQuizQuestion(){
   s._correct=w.korean;
   c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitSpeedQuiz()" style="font-size:12px;">← 나가기</button>
       <span style="font-size:16px;font-weight:700;">⚡ 스피드 퀴즈</span>
       <span style="font-size:14px;font-weight:700;color:var(--accent);">점수: ${s.score}</span>
     </div>
@@ -3290,6 +3294,7 @@ function renderCardMatch(){
   const c=document.getElementById('quiz-main');const s=matchState;if(!s)return;
   c.innerHTML=`<div class="card" style="padding:16px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitCardMatch()" style="font-size:12px;">← 나가기</button>
       <span style="font-size:16px;font-weight:700;">🃏 카드 매칭</span>
       <span style="font-size:14px;color:var(--text-secondary);">${s.matchedPairs}/${s.totalPairs} | ${s.moves}회</span>
     </div>
@@ -3351,7 +3356,8 @@ function renderFillQuestion(){
   if(s.current>=s.total){endFillBlank();return;}
   const w=s.questions[s.current];
   c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
-    <div style="display:flex;justify-content:space-between;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitFillBlank()" style="font-size:12px;">← 나가기</button>
       <span style="font-size:16px;font-weight:700;">✏️ 빈칸 채우기</span>
       <span style="font-size:14px;color:var(--text-secondary);">${s.current+1}/${s.total}</span>
     </div>
