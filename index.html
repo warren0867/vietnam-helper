@@ -2205,8 +2205,13 @@ function renderBudgetAlert(){const c=document.getElementById('budget-alert-conta
 
 // ==================== TAB NAVIGATION ====================
 const headerSubs={'tab-dictionary':'Từ vựng / 단어장','tab-quiz':'Câu đố / 퀴즈','tab-expenses':'Chi phí / 생활비','tab-settings':'Cài đặt / 설정'};
+function cleanupMiniGames(){
+  if(speedQuizState&&speedQuizState.timer){clearInterval(speedQuizState.timer);speedQuizState=null;}
+  matchState=null;fillState=null;
+}
 function switchTab(el){
   const id=el.dataset.tab;
+  cleanupMiniGames();
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -2233,19 +2238,6 @@ function switchExpSub(el){
 function speak(text,lang){if(!('speechSynthesis' in window)){showToast('Không hỗ trợ giọng nói','error');return;}window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=lang;u.rate=0.85;window.speechSynthesis.speak(u);}
 
 // ==================== WORD OF THE DAY ====================
-function renderWOTD(){
-  const c=document.getElementById('wotd-container');if(!c)return;
-  const today=todayStr();const seed=today.split('-').reduce((a,b)=>a+parseInt(b),0);
-  const idx=seed%BUILTIN_WORDS.length;const w=BUILTIN_WORDS[idx];
-  c.innerHTML=`<div class="wotd-card" onclick="speak('${esc(w[1])}','ko-KR')">
-    <div class="wotd-label">📖 Từ hôm nay / 오늘의 단어</div>
-    <div class="wotd-vi">${esc(w[0])}</div>
-    <div class="wotd-ko">${esc(w[1])}</div>
-    <div class="wotd-pron">🗣️ ${esc(w[2])}</div>
-    <div style="margin-top:8px;font-size:12px;opacity:.7;">Nhấn để nghe phát âm / 터치하면 발음 재생 🔊</div>
-  </div>`;
-}
-
 // ==================== RECENT SEARCHES ====================
 function getRecentSearches(){return load(SK.recentSearch)||[];}
 function addRecentSearch(q){let rs=getRecentSearches();rs=rs.filter(x=>x!==q);rs.unshift(q);if(rs.length>5)rs=rs.slice(0,5);save(SK.recentSearch,rs);}
@@ -2585,6 +2577,8 @@ function renderQuizMain(){
       </div>
     </div>
     ${renderQuizStatsSection()}`;
+  // 커플 대결은 innerHTML 뒤에 별도 렌더
+  setTimeout(()=>renderPartnerCompare(),0);
 }
 function setQuizSource(s){appSettings.quizSource=s;save(SK.settings,appSettings);renderQuizMain();}
 
@@ -3231,6 +3225,7 @@ function renderSpeedQuizQuestion(){
   const wrongs=pool.filter(x=>x.korean!==w.korean).sort(()=>Math.random()-.5).slice(0,3);
   const options=[...wrongs.map(x=>x.korean),w.korean].sort(()=>Math.random()-.5);
   s.answered=false;
+  s._correct=w.korean;
   c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <span style="font-size:16px;font-weight:700;">⚡ 스피드 퀴즈</span>
@@ -3239,21 +3234,22 @@ function renderSpeedQuizQuestion(){
     <div class="speed-timer" id="speed-timer">${s.timeLeft}s</div>
     <div class="quiz-word">${esc(w.vietnamese)}</div>
     <div class="quiz-options">
-      ${options.map((opt,i)=>`<button class="quiz-option" id="speed-opt-${i}" onclick="answerSpeedQuiz(${i},'${esc(opt).replace(/'/g,"\\'")}','${esc(w.korean).replace(/'/g,"\\'")}')">${esc(opt)}</button>`).join('')}
+      ${options.map((opt,i)=>`<button class="quiz-option" id="speed-opt-${i}" data-idx="${i}" data-val="${esc(opt)}" onclick="answerSpeedQuiz(this)">${esc(opt)}</button>`).join('')}
     </div>
   </div>`;
 }
-function answerSpeedQuiz(idx,chosen,correct){
+function answerSpeedQuiz(btn){
   if(!speedQuizState||speedQuizState.answered)return;
   speedQuizState.answered=true;
-  const isCorrect=chosen===correct;
-  const el=document.getElementById('speed-opt-'+idx);
-  if(isCorrect){el.classList.add('correct');speedQuizState.score++;addXP(5);}
-  else el.classList.add('wrong');
-  setTimeout(()=>{speedQuizState.current++;renderSpeedQuizQuestion();},500);
+  const chosen=btn.dataset.val;
+  const isCorrect=chosen===speedQuizState._correct;
+  if(isCorrect){btn.classList.add('correct');speedQuizState.score++;addXP(5);}
+  else btn.classList.add('wrong');
+  setTimeout(()=>{if(!speedQuizState)return;speedQuizState.current++;renderSpeedQuizQuestion();},500);
 }
 function endSpeedQuiz(){
   const s=speedQuizState;if(!s)return;
+  if(s.timer)clearInterval(s.timer);
   miniGameStats.speed.played++;
   miniGameStats.speed.bestScore=Math.max(miniGameStats.speed.bestScore,s.score);
   save(SK.miniGameStats,miniGameStats);
@@ -3445,16 +3441,30 @@ function setupPartnerListener(){
 function renderPartnerCompare(){
   const el=document.getElementById('partner-compare-section');
   if(!el)return;
-  if(!partnerData){el.innerHTML='';return;}
-  const myLvl=xpData.level;const pLvl=partnerData.level||0;
-  const myStreak=attendanceData.streak;const pStreak=partnerData.streak||0;
-  const myLearned=Object.keys(learnedWords).length;const pLearned=partnerData.learnedCount||0;
+  const myLvl=xpData.level;const myStreak=attendanceData.streak;
+  const myLearned=Object.keys(learnedWords).length;
+  const cfg=getShareConfig();
+  if(!partnerData){
+    // 파트너 데이터 없을 때: 공유 안내 or 나의 현황만 표시
+    el.innerHTML=`<div class="card" style="margin-top:12px;">
+      <h3 style="font-size:15px;margin-bottom:12px;">💑 커플 대결</h3>
+      <div style="text-align:center;padding:12px;">
+        <div style="font-size:36px;margin-bottom:8px;">${getTree(myLvl)}</div>
+        <div style="font-size:16px;font-weight:700;">Lv.${myLvl} | 🔥${myStreak}일 | 📚${myLearned}개</div>
+        ${!cfg.enabled?'<p style="font-size:12px;color:var(--text-secondary);margin-top:10px;">⚙️ 설정에서 공유를 켜면<br>파트너와 대결할 수 있어요!</p>':'<p style="font-size:12px;color:var(--text-secondary);margin-top:10px;">파트너가 앱을 열면 비교가 나타나요!</p>'}
+      </div>
+    </div>`;
+    return;
+  }
+  const pLvl=partnerData.level||0;
+  const pStreak=partnerData.streak||0;
+  const pLearned=partnerData.learnedCount||0;
   const diff=myLearned-pLearned;
   let msg='';
   if(diff>0)msg=`🎉 상대보다 ${diff}단어 더 배웠어요!`;
   else if(diff<0)msg=`💪 상대가 ${Math.abs(diff)}단어 더 배웠어요! 힘내세요!`;
   else msg='🤝 같은 수의 단어를 배웠어요!';
-  el.innerHTML=`<div class="card">
+  el.innerHTML=`<div class="card" style="margin-top:12px;">
     <h3 style="font-size:15px;margin-bottom:12px;">💑 커플 대결</h3>
     <div class="partner-compare">
       <div class="partner-col"><div class="pc-name">나</div><div class="pc-value">${getTree(myLvl)} Lv.${myLvl}</div><div style="font-size:12px;color:var(--text-secondary);">🔥${myStreak} | 📚${myLearned}</div></div>
