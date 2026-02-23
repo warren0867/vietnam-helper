@@ -323,32 +323,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="budget-alert-container"></div>
 <div class="sub-content active" id="exp-input">
 <div class="card">
-<div class="input-group">
-<label>💰 Số tiền (KRW) / 금액 (원)</label>
-<input type="number" id="exp-amount" placeholder="Nhập số tiền..." inputmode="numeric" oninput="showVndPreview()">
-<div class="currency-display" id="vnd-preview"></div>
+  <div style="margin-bottom:12px;">
+    <div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">📂 카테고리</div>
+    <div class="category-grid" id="exp-cat-grid"></div>
+  </div>
+  <div style="margin-bottom:12px;">
+    <input type="number" id="exp-amount" placeholder="금액 입력 (원)..." inputmode="numeric"
+      style="width:100%;padding:14px 16px;font-size:24px;font-weight:700;border:2px solid var(--border);border-radius:12px;background:var(--bg);color:var(--text);outline:none;"
+      oninput="showVndPreview()">
+    <div class="currency-display" id="vnd-preview" style="text-align:right;padding:4px 4px 0;font-size:13px;"></div>
+  </div>
+  <div class="radio-group" style="margin-bottom:10px;">
+    <label class="radio-label selected" id="pay-cash" onclick="selectPayment('cash')"><input type="radio" name="payment" value="cash" checked>💵 현금</label>
+    <label class="radio-label" id="pay-card" onclick="selectPayment('card')"><input type="radio" name="payment" value="card">💳 카드</label>
+  </div>
+  <div style="margin-bottom:10px;">
+    <button onclick="toggleMemoField()" id="memo-toggle-btn"
+      style="width:100%;padding:8px;background:var(--border);color:var(--text-secondary);font-size:12px;font-weight:600;border:none;border-radius:8px;cursor:pointer;">📝 메모 추가 (선택)</button>
+    <div id="memo-section" style="display:none;margin-top:6px;">
+      <input type="text" id="exp-memo" placeholder="메모..."
+        style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;background:var(--bg);color:var(--text);outline:none;">
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:6px 0;border-top:1px solid var(--border);">
+    <span style="font-size:13px;color:var(--text-secondary);">📅 날짜</span>
+    <input type="date" id="exp-date" style="border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:8px;padding:5px 10px;font-size:13px;outline:none;">
+  </div>
+  <button class="btn btn-primary btn-full" onclick="addExpense()" style="padding:14px;font-size:16px;font-weight:700;">저장 ✅</button>
 </div>
-<div class="input-group">
-<label>💳 Phương thức / 결제 수단</label>
-<div class="radio-group">
-<label class="radio-label selected" id="pay-cash" onclick="selectPayment('cash')"><input type="radio" name="payment" value="cash" checked>💵 Tiền mặt / 현금</label>
-<label class="radio-label" id="pay-card" onclick="selectPayment('card')"><input type="radio" name="payment" value="card">💳 Thẻ / 카드</label>
-</div>
-</div>
-<div class="input-group">
-<label>📂 Danh mục / 카테고리</label>
-<div class="category-grid" id="exp-cat-grid"></div>
-</div>
-<div class="input-group">
-<label>📝 Ghi chú / 메모</label>
-<input type="text" id="exp-memo" placeholder="Ghi chú...">
-</div>
-<div class="input-group">
-<label>📅 Ngày / 날짜</label>
-<input type="date" id="exp-date">
-</div>
-<button class="btn btn-primary btn-full" onclick="addExpense()" style="margin-top:6px;">Lưu / 저장 ✅</button>
-</div>
+<div id="recent-expenses-section"></div>
 </div>
 <div class="sub-content" id="exp-calendar">
 <div class="card">
@@ -411,6 +414,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="setting-item">
 <div><div class="setting-label">📡 Chia sẻ dữ liệu / 데이터 공유</div><div class="setting-desc" id="share-status">Chưa kết nối / 미연결</div></div>
 <button class="toggle-switch" id="share-toggle" onclick="toggleSharing()"></button>
+</div>
+<div class="setting-item">
+<div><div class="setting-label">💸 지출 따로 관리</div><div class="setting-desc">각자 지출 따로 기록 · 경쟁 시 추천</div></div>
+<button class="toggle-switch" id="exp-separate-toggle" onclick="toggleExpSeparate()"></button>
 </div>
 </div>
 <div class="card">
@@ -2219,7 +2226,7 @@ function switchTab(el){
   document.getElementById('header-sub').textContent=headerSubs[id];
   if(id==='tab-dictionary')renderEnhancedWOTD();
   if(id==='tab-quiz')renderQuizMain();
-  if(id==='tab-expenses'){renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();}
+  if(id==='tab-expenses'){renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();renderRecentExpenses();}
   if(id==='tab-settings'){updateRateDisplay();loadBudget();}
 }
 function switchDictSub(el){
@@ -2530,21 +2537,27 @@ function renderQuizMain(){
   const todayQuiz=load(SK.quiz);
   const todayDone=todayQuiz&&todayQuiz.date===todayStr()&&todayQuiz.completed;
   c.innerHTML=`
-    <div style="text-align:center;margin-bottom:16px;"><span style="font-size:36px;">🎯</span><h3 style="margin-top:8px;">Chọn chế độ / 모드 선택</h3></div>
-    <div class="card quiz-mode-card" onclick="startQuizMode('daily')" ${todayDone?'style="opacity:.6"':''}>
-      <span class="quiz-mode-icon">📅</span>
-      <div class="quiz-mode-title">Câu đố hàng ngày / 일일 퀴즈</div>
-      <div class="quiz-mode-desc">${todayDone?'Đã hoàn thành hôm nay! ✅ / 오늘 완료!':'10 câu mỗi ngày / 매일 10문제'}</div>
+    <div onclick="${todayDone?'':"startQuizMode('daily')"}" style="background:${todayDone?'var(--accent-light)':'linear-gradient(135deg,var(--primary),var(--primary-dark))'};border-radius:var(--radius);padding:20px;margin-bottom:12px;cursor:${todayDone?'default':'pointer'};box-shadow:var(--shadow);border:2px solid ${todayDone?'var(--accent)':'transparent'};">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:${todayDone?'var(--accent)':'rgba(255,255,255,.8)'};margin-bottom:6px;">📅 오늘의 퀴즈</div>
+          <div style="font-size:22px;font-weight:800;color:${todayDone?'var(--accent)':'#fff'};">${todayDone?'✅ 완료!':'10문제 도전'}</div>
+          <div style="font-size:12px;color:${todayDone?'var(--text-secondary)':'rgba(255,255,255,.7)'};margin-top:4px;">${todayDone?'오늘 학습 완료 🎉':'완료 시 +50 XP 보너스!'}</div>
+        </div>
+        <span style="font-size:52px;">${todayDone?'🏆':'📅'}</span>
+      </div>
     </div>
-    <div class="card quiz-mode-card" onclick="startQuizMode('practice')">
-      <span class="quiz-mode-icon">📝</span>
-      <div class="quiz-mode-title">Luyện tập / 연습 모드</div>
-      <div class="quiz-mode-desc">Không giới hạn / 무제한 연습</div>
-    </div>
-    <div class="card quiz-mode-card" onclick="${wrongCount>0?'startQuizMode(\'wrong\')':''}" style="${wrongCount===0?'opacity:.5':''}" >
-      <span class="quiz-mode-icon">🔄</span>
-      <div class="quiz-mode-title">Ôn từ sai / 틀린 단어 복습</div>
-      <div class="quiz-mode-desc">${wrongCount>0?`${wrongCount} từ cần ôn / ${wrongCount}개 복습 필요`:'Chưa có từ sai / 틀린 단어 없음'}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      <div class="card quiz-mode-card" onclick="startQuizMode('practice')" style="padding:16px;">
+        <span class="quiz-mode-icon" style="font-size:32px;">📝</span>
+        <div class="quiz-mode-title">연습 모드</div>
+        <div class="quiz-mode-desc">무제한 연습</div>
+      </div>
+      <div class="card quiz-mode-card" onclick="${wrongCount>0?'startQuizMode(\'wrong\')':''}" style="padding:16px;${wrongCount===0?'opacity:.5':''}">
+        <span class="quiz-mode-icon" style="font-size:32px;">🔄</span>
+        <div class="quiz-mode-title">오답 복습</div>
+        <div class="quiz-mode-desc">${wrongCount>0?wrongCount+'개 복습':'틀린 단어 없음'}</div>
+      </div>
     </div>
     <div style="margin-top:16px;margin-bottom:8px;"><h3 style="font-size:15px;">🎮 미니게임</h3></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -2819,13 +2832,15 @@ function renderQuizStatsSection(){
 
 // ==================== EXPENSES ====================
 function selectPayment(type){selectedPayment=type;document.getElementById('pay-cash').classList.toggle('selected',type==='cash');document.getElementById('pay-card').classList.toggle('selected',type==='card');}
+function toggleMemoField(){const s=document.getElementById('memo-section');const b=document.getElementById('memo-toggle-btn');if(s.style.display==='none'){s.style.display='block';b.textContent='📝 메모 숨기기';setTimeout(()=>{const i=document.getElementById('exp-memo');if(i)i.focus();},50);}else{s.style.display='none';b.textContent='📝 메모 추가 (선택)';}}
+function renderRecentExpenses(){const el=document.getElementById('recent-expenses-section');if(!el)return;const recent=expenses.slice(0,5);if(recent.length===0){el.innerHTML='';return;}el.innerHTML='<div class="card" style="margin-top:0;"><div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">🕐 최근 내역</div>'+recent.map(e=>{const cat=EXP_CATS[e.category]||EXP_CATS.other;return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">'+cat.icon+'</span><div><div style="font-size:13px;font-weight:600;">'+esc(e.memo||cat.ko)+'</div><div style="font-size:11px;color:var(--text-secondary);">'+e.date+' · '+(e.payment==='card'?'💳':'💵')+'</div></div></div><div style="font-size:14px;font-weight:700;color:var(--primary);">'+fmt(e.amount)+'₩</div></div>';}).join('')+'</div>';}
 function showVndPreview(){const v=parseInt(document.getElementById('exp-amount').value)||0;document.getElementById('vnd-preview').textContent=v>0?`≈ ${fmt(toVnd(v))}₫`:'';}
 function addExpense(){
   const amount=parseInt(document.getElementById('exp-amount').value),memo=document.getElementById('exp-memo').value.trim(),date=document.getElementById('exp-date').value;
   if(!amount||amount<=0){showToast('Nhập số tiền!','error');return;}if(!date){showToast('Chọn ngày!','error');return;}
   expenses.unshift({id:Date.now(),amount,payment:selectedPayment,category:selectedExpCat,memo,date});
-  save(SK.expenses,expenses);document.getElementById('exp-amount').value='';document.getElementById('exp-memo').value='';document.getElementById('vnd-preview').textContent='';
-  showToast('Đã lưu!','success');renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();
+  save(SK.expenses,expenses);document.getElementById('exp-amount').value='';if(document.getElementById('exp-memo'))document.getElementById('exp-memo').value='';document.getElementById('vnd-preview').textContent='';
+  showToast('저장했어요! ✅','success');renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();renderRecentExpenses();
 }
 function deleteExpense(id){if(!confirm('Xóa chi tiêu này?'))return;expenses=expenses.filter(e=>e.id!==id);save(SK.expenses,expenses);renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();showToast('Đã xóa!','success');}
 function openExpenseEditModal(id){const e=expenses.find(x=>x.id===id);if(!e)return;document.getElementById('edit-exp-amount').value=e.amount;document.getElementById('edit-exp-memo').value=e.memo;document.getElementById('edit-exp-date').value=e.date;document.getElementById('edit-exp-cat').value=e.category;document.getElementById('edit-exp-id').value=e.id;selectEditPayment(e.payment);document.getElementById('expense-edit-modal').classList.add('show');}
@@ -3025,6 +3040,7 @@ function toggleSharing(){
   }else{disconnectSharing();}
 }
 
+function toggleExpSeparate(){appSettings.expSeparate=!appSettings.expSeparate;save(SK.settings,appSettings);const el=document.getElementById('exp-separate-toggle');if(el)el.classList.toggle('on',appSettings.expSeparate===true);showToast(appSettings.expSeparate?'💸 지출을 따로 관리합니다':'🔗 지출을 함께 공유합니다','info');}
 function disconnectSharing(){
   if(window.storage._fb&&window.storage._familyCode){
     Object.values(window.storage._listeners).forEach(function(unsub){if(typeof unsub==='function')unsub();});
@@ -3040,7 +3056,8 @@ function disconnectSharing(){
 function uploadAllData(code){
   if(!window.storage._fb)return;
   const db=window.storage._fb;
-  const sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings,SK.attendance,SK.xp,SK.miniGameStats];
+  const expSep=(appSettings.expSeparate===true);
+  const sharedKeys=[SK.words,SK.budget,SK.rate].concat(expSep?[]:[SK.expenses]);
   db.ref(code).once('value').then(function(snapshot){
     const remoteData=snapshot.val();
     if(remoteData&&Object.keys(remoteData).length>0){
@@ -3064,7 +3081,8 @@ var _syncPaused=false;
 function setupFirebaseListeners(code){
   if(!window.storage._fb)return;
   var db=window.storage._fb;
-  var sharedKeys=[SK.words,SK.expenses,SK.quizStats,SK.wrongWords,SK.learned,SK.budget,SK.rate,SK.settings,SK.attendance,SK.xp,SK.miniGameStats];
+  var expSep2=(appSettings.expSeparate===true);
+  var sharedKeys=[SK.words,SK.budget,SK.rate].concat(expSep2?[]:[SK.expenses]);
   sharedKeys.forEach(function(key){
     var ref=db.ref(code+'/'+key);
     var listener=ref.on('value',function(snapshot){
@@ -3772,11 +3790,12 @@ function initApp(){
   const now=new Date();calYear=now.getFullYear();calMonth=now.getMonth();
   document.getElementById('exp-date').value=toDateStr(now);
   document.getElementById('autoplay-toggle')?.classList.toggle('on',appSettings.autoplay);
+  document.getElementById('exp-separate-toggle')?.classList.toggle('on',appSettings.expSeparate===true);
   // Gamification: check attendance & render bar
   const isNewDay=checkAttendance();
   renderGamiBar();
   loadRate();renderExpCatGrid();renderMyWords();renderEnhancedWOTD();renderQuizMain();
-  renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();
+  renderCalendar();renderStats();renderExpenseList();renderBudgetAlert();renderRecentExpenses();
   updateRateDisplay();loadBudget();updateOnlineStatus();renderRecentSearches();
   if(!load(SK.tutorial))setTimeout(showTutorial,500);
   else if(isNewDay)setTimeout(showWelcomeOverlay,300);

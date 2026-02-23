@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uridul-v8';
+const CACHE_NAME = 'uridul-v9';
 const STATIC_ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', event => {
