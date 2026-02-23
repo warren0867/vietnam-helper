@@ -2151,7 +2151,7 @@ let searchTimer=null;
 let recentQuizIds=[];
 let attendanceData=load(SK.attendance)||{streak:0,lastDate:null,totalDays:0,history:[]};
 let xpData=load(SK.xp)||{total:0,level:0};
-let miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},match:{played:0,bestTime:999},fill:{played:0,correct:0,total:0}};
+let miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},fill:{played:0,correct:0,total:0},chosung:{played:0,bestScore:0},hint:{played:0,bestScore:0},ox:{played:0,bestScore:0},survival:{played:0,bestScore:0}};
 let partnerData=null;
 
 // ==================== BUILTIN WORDS HELPER ====================
@@ -2207,7 +2207,7 @@ function renderBudgetAlert(){const c=document.getElementById('budget-alert-conta
 const headerSubs={'tab-dictionary':'Từ vựng / 단어장','tab-quiz':'Câu đố / 퀴즈','tab-expenses':'Chi phí / 생활비','tab-settings':'Cài đặt / 설정'};
 function cleanupMiniGames(){
   if(speedQuizState&&speedQuizState.timer){clearInterval(speedQuizState.timer);speedQuizState=null;}
-  matchState=null;fillState=null;
+  fillState=null;chosungState=null;hintState=null;oxState=null;survivalState=null;
 }
 function switchTab(el){
   const id=el.dataset.tab;
@@ -2547,24 +2547,42 @@ function renderQuizMain(){
       <div class="quiz-mode-desc">${wrongCount>0?`${wrongCount} từ cần ôn / ${wrongCount}개 복습 필요`:'Chưa có từ sai / 틀린 단어 없음'}</div>
     </div>
     <div style="margin-top:16px;margin-bottom:8px;"><h3 style="font-size:15px;">🎮 미니게임</h3></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="card minigame-card" onclick="startSpeedQuiz()">
         <span class="mg-icon">⚡</span>
         <div class="mg-title">스피드 퀴즈</div>
         <div class="mg-desc">30초 도전!</div>
         ${miniGameStats.speed.bestScore>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.speed.bestScore}</div>`:''}
       </div>
-      <div class="card minigame-card" onclick="startCardMatch()">
-        <span class="mg-icon">🃏</span>
-        <div class="mg-title">카드 매칭</div>
-        <div class="mg-desc">짝 맞추기</div>
-        ${miniGameStats.match.bestTime<999?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.match.bestTime}초</div>`:''}
-      </div>
       <div class="card minigame-card" onclick="startFillBlank()">
         <span class="mg-icon">✏️</span>
         <div class="mg-title">빈칸 채우기</div>
         <div class="mg-desc">직접 입력!</div>
         ${miniGameStats.fill.played>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">${miniGameStats.fill.total>0?Math.round((miniGameStats.fill.correct/miniGameStats.fill.total)*100):0}%</div>`:''}
+      </div>
+      <div class="card minigame-card" onclick="startChosungGame()">
+        <span class="mg-icon">🔤</span>
+        <div class="mg-title">초성 챌린지</div>
+        <div class="mg-desc">초성 보고 맞추기</div>
+        ${miniGameStats.chosung.bestScore>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.chosung.bestScore}</div>`:''}
+      </div>
+      <div class="card minigame-card" onclick="startHintGame()">
+        <span class="mg-icon">💡</span>
+        <div class="mg-title">힌트 게임</div>
+        <div class="mg-desc">힌트로 맞추기</div>
+        ${miniGameStats.hint.bestScore>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.hint.bestScore}</div>`:''}
+      </div>
+      <div class="card minigame-card" onclick="startOXMarathon()">
+        <span class="mg-icon">⭕</span>
+        <div class="mg-title">OX 마라톤</div>
+        <div class="mg-desc">맞으면 O, 틀리면 X</div>
+        ${miniGameStats.ox.bestScore>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.ox.bestScore}</div>`:''}
+      </div>
+      <div class="card minigame-card" onclick="startSurvival()">
+        <span class="mg-icon">🛡️</span>
+        <div class="mg-title">서바이벌</div>
+        <div class="mg-desc">목숨 3개로 도전!</div>
+        ${miniGameStats.survival.bestScore>0?`<div style="font-size:10px;color:var(--accent);margin-top:4px;">최고: ${miniGameStats.survival.bestScore}</div>`:''}
       </div>
     </div>
     <div id="partner-compare-section"></div>
@@ -2687,8 +2705,11 @@ function answerQuiz(idx){
 function nextQuizQuestion(){if(!quizState)return;quizState.current++;renderQuizQuestion();}
 function exitQuiz(){quizState=null;renderQuizMain();}
 function exitSpeedQuiz(){if(speedQuizState&&speedQuizState.timer)clearInterval(speedQuizState.timer);speedQuizState=null;renderQuizMain();}
-function exitCardMatch(){matchState=null;renderQuizMain();}
 function exitFillBlank(){fillState=null;renderQuizMain();}
+function exitChosungGame(){chosungState=null;renderQuizMain();}
+function exitHintGame(){hintState=null;renderQuizMain();}
+function exitOXMarathon(){oxState=null;renderQuizMain();}
+function exitSurvival(){survivalState=null;renderQuizMain();}
 
 function renderQuizResult(){
   const c=document.getElementById('quiz-main');if(!quizState)return;
@@ -3073,7 +3094,7 @@ function refreshFromStorage(key){
   if(key===SK.settings){appSettings=load(SK.settings)||{autoplay:false,quizSource:'all'};}
   if(key===SK.attendance){attendanceData=load(SK.attendance)||{streak:0,lastDate:null,totalDays:0,history:[]};renderGamiBar();}
   if(key===SK.xp){xpData=load(SK.xp)||{total:0,level:0};renderGamiBar();}
-  if(key===SK.miniGameStats){miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},match:{played:0,bestTime:999},fill:{played:0,correct:0,total:0}};}
+  if(key===SK.miniGameStats){miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},fill:{played:0,correct:0,total:0},chosung:{played:0,bestScore:0},hint:{played:0,bestScore:0},ox:{played:0,bestScore:0},survival:{played:0,bestScore:0}};}
   _syncPaused=false;
 }
 
@@ -3276,71 +3297,6 @@ function endSpeedQuiz(){
   uploadPlayerData();
 }
 
-// ==================== MINI-GAME: CARD MATCHING ====================
-let matchState=null;
-function startCardMatch(){
-  const pool=getAllQuizWords();
-  if(pool.length<6){showToast('최소 6개 단어 필요!','error');return;}
-  const selected=[...pool].sort(()=>Math.random()-.5).slice(0,6);
-  const cards=[];
-  selected.forEach((w,i)=>{
-    cards.push({id:i*2,pairId:i,text:w.vietnamese,type:'vi',flipped:false,matched:false});
-    cards.push({id:i*2+1,pairId:i,text:w.korean,type:'ko',flipped:false,matched:false});
-  });
-  matchState={cards:cards.sort(()=>Math.random()-.5),flippedIds:[],matchedPairs:0,totalPairs:6,moves:0,startTime:Date.now()};
-  renderCardMatch();
-}
-function renderCardMatch(){
-  const c=document.getElementById('quiz-main');const s=matchState;if(!s)return;
-  c.innerHTML=`<div class="card" style="padding:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <button class="btn btn-sm btn-secondary" onclick="exitCardMatch()" style="font-size:12px;">← 나가기</button>
-      <span style="font-size:16px;font-weight:700;">🃏 카드 매칭</span>
-      <span style="font-size:14px;color:var(--text-secondary);">${s.matchedPairs}/${s.totalPairs} | ${s.moves}회</span>
-    </div>
-    <div class="memory-grid">
-      ${s.cards.map(card=>`<div class="memory-card ${card.flipped||card.matched?'flipped':''} ${card.matched?'matched':''}" onclick="flipCard(${card.id})">${card.flipped||card.matched?esc(card.text):'?'}</div>`).join('')}
-    </div>
-  </div>`;
-}
-function flipCard(cardId){
-  const s=matchState;if(!s)return;
-  const card=s.cards.find(c=>c.id===cardId);
-  if(!card||card.flipped||card.matched||s.flippedIds.length>=2)return;
-  card.flipped=true;s.flippedIds.push(cardId);
-  renderCardMatch();
-  if(s.flippedIds.length===2){
-    s.moves++;
-    const[c1,c2]=[s.cards.find(c=>c.id===s.flippedIds[0]),s.cards.find(c=>c.id===s.flippedIds[1])];
-    if(c1.pairId===c2.pairId){
-      c1.matched=true;c2.matched=true;s.matchedPairs++;s.flippedIds=[];
-      renderCardMatch();
-      if(s.matchedPairs===s.totalPairs)endCardMatch();
-    }else{
-      setTimeout(()=>{c1.flipped=false;c2.flipped=false;s.flippedIds=[];renderCardMatch();},800);
-    }
-  }
-}
-function endCardMatch(){
-  const elapsed=Math.round((Date.now()-matchState.startTime)/1000);
-  miniGameStats.match.played++;
-  miniGameStats.match.bestTime=Math.min(miniGameStats.match.bestTime,elapsed);
-  save(SK.miniGameStats,miniGameStats);
-  addXP(20);
-  setTimeout(()=>{
-    const c=document.getElementById('quiz-main');
-    c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
-      <span style="font-size:48px;display:block;margin-bottom:12px;">🃏</span>
-      <h3>카드 매칭 완료!</h3>
-      <div class="quiz-score">${elapsed}초</div>
-      <p style="color:var(--text-secondary);">${matchState.moves}회 시도로 완료!</p>
-      <p style="color:var(--text-secondary);font-size:13px;">최고 기록: ${miniGameStats.match.bestTime===999?'-':miniGameStats.match.bestTime+'초'}</p>
-      <button class="btn btn-primary btn-full" onclick="matchState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
-    </div>`;
-    matchState=null;
-    uploadPlayerData();
-  },600);
-}
 
 // ==================== MINI-GAME: FILL IN BLANK ====================
 let fillState=null;
@@ -3397,6 +3353,281 @@ function endFillBlank(){
     <button class="btn btn-primary btn-full" onclick="fillState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
   </div>`;
   fillState=null;
+  uploadPlayerData();
+}
+
+
+// ==================== MINI-GAME: CHOSUNG CHALLENGE ====================
+let chosungState=null;
+function getChosung(str){
+  const CS=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  return [...str].map(c=>{const code=c.charCodeAt(0);if(code>=0xAC00&&code<=0xD7A3)return CS[Math.floor((code-0xAC00)/588)];return c;}).join('');
+}
+function startChosungGame(){
+  const pool=getAllQuizWords();
+  if(pool.length<4){showToast('최소 4개 단어 필요!','error');return;}
+  const selected=[...pool].sort(()=>Math.random()-.5).slice(0,10);
+  chosungState={questions:selected,current:0,score:0,total:selected.length,checked:false};
+  renderChosungQ();
+}
+function renderChosungQ(){
+  const c=document.getElementById('quiz-main');const s=chosungState;if(!s)return;
+  if(s.current>=s.total){endChosungGame();return;}
+  const w=s.questions[s.current];
+  const chosung=getChosung(w.korean);
+  c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitChosungGame()" style="font-size:12px;">← 나가기</button>
+      <span style="font-size:16px;font-weight:700;">🔤 초성 챌린지</span>
+      <span style="font-size:14px;color:var(--text-secondary);">${s.current+1}/${s.total}</span>
+    </div>
+    <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" style="width:${(s.current/s.total)*100}%;"></div></div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">베트남어</div>
+    <div class="quiz-word">${esc(w.vietnamese)}</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin:12px 0 4px;">초성 힌트</div>
+    <div style="font-size:28px;font-weight:700;letter-spacing:6px;color:var(--accent);margin-bottom:16px;">${esc(chosung)}</div>
+    <input class="fill-input" id="chosung-answer" type="text" placeholder="한국어로 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')chosungCheck()">
+    <button class="btn btn-primary btn-full" onclick="chosungCheck()" style="margin-top:12px;">확인</button>
+    <div id="chosung-feedback" style="margin-top:12px;"></div>
+  </div>`;
+  setTimeout(()=>{const inp=document.getElementById('chosung-answer');if(inp)inp.focus();},100);
+}
+function chosungCheck(){
+  const s=chosungState;if(!s||s.checked)return;
+  const w=s.questions[s.current];
+  const answer=(document.getElementById('chosung-answer').value||'').trim();
+  const fb=document.getElementById('chosung-feedback');
+  if(!answer){showToast('답을 입력하세요!','error');return;}
+  s.checked=true;
+  const correct=answer===w.korean;
+  if(correct){s.score++;addXP(10);fb.innerHTML=`<p style="color:var(--accent);font-weight:700;">✅ 정답! +10 XP</p>`;}
+  else fb.innerHTML=`<p style="color:var(--danger);font-weight:700;">❌ 오답! 정답: ${esc(w.korean)}</p>`;
+  document.getElementById('chosung-answer').disabled=true;
+  setTimeout(()=>{s.current++;s.checked=false;renderChosungQ();},1200);
+}
+function endChosungGame(){
+  miniGameStats.chosung.played++;
+  miniGameStats.chosung.bestScore=Math.max(miniGameStats.chosung.bestScore,chosungState.score);
+  save(SK.miniGameStats,miniGameStats);
+  if(chosungState.score===chosungState.total)addXP(30);
+  else if(chosungState.score>=chosungState.total*0.7)addXP(15);
+  const c=document.getElementById('quiz-main');
+  c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+    <span style="font-size:48px;display:block;margin-bottom:12px;">🔤</span>
+    <h3>초성 챌린지 결과!</h3>
+    <div class="quiz-score">${chosungState.score} / ${chosungState.total}</div>
+    <p style="color:var(--text-secondary);">${Math.round((chosungState.score/chosungState.total)*100)}% 정답률</p>
+    <p style="color:var(--text-secondary);font-size:13px;">최고 기록: ${miniGameStats.chosung.bestScore}개</p>
+    <button class="btn btn-primary btn-full" onclick="chosungState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
+  </div>`;
+  chosungState=null;
+  uploadPlayerData();
+}
+
+// ==================== MINI-GAME: HINT GAME ====================
+let hintState=null;
+function startHintGame(){
+  const pool=getAllQuizWords();
+  if(pool.length<4){showToast('최소 4개 단어 필요!','error');return;}
+  const selected=[...pool].sort(()=>Math.random()-.5).slice(0,8);
+  hintState={questions:selected,current:0,score:0,total:selected.length,hintsUsed:0,checked:false};
+  renderHintQ();
+}
+function renderHintQ(){
+  const c=document.getElementById('quiz-main');const s=hintState;if(!s)return;
+  if(s.current>=s.total){endHintGame();return;}
+  const w=s.questions[s.current];
+  const maxHints=Math.min(3,Math.floor(w.korean.length/2));
+  const hintsUsed=s.hintsUsed;
+  let hintText='';
+  if(hintsUsed>=1)hintText+=`<div style="font-size:13px;margin-top:8px;">🗣️ 발음: <b>${esc(w.pronunciation||'')}</b></div>`;
+  if(hintsUsed>=2)hintText+=`<div style="font-size:13px;margin-top:4px;">📝 초성: <b>${esc(getChosung(w.korean))}</b></div>`;
+  if(hintsUsed>=3)hintText+=`<div style="font-size:13px;margin-top:4px;">🔡 첫 글자: <b>${esc(w.korean[0])}...</b></div>`;
+  const pts=hintsUsed===0?15:hintsUsed===1?10:hintsUsed===2?7:5;
+  c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitHintGame()" style="font-size:12px;">← 나가기</button>
+      <span style="font-size:16px;font-weight:700;">💡 힌트 게임</span>
+      <span style="font-size:14px;color:var(--text-secondary);">${s.current+1}/${s.total}</span>
+    </div>
+    <div class="progress-bar" style="margin-bottom:16px;"><div class="progress-fill" style="width:${(s.current/s.total)*100}%;background:var(--warning);"></div></div>
+    <div class="quiz-word">${esc(w.vietnamese)}</div>
+    <div style="min-height:64px;margin:8px 0;">${hintText||'<div style="font-size:13px;color:var(--text-secondary);margin-top:16px;">힌트 없이 맞추면 +15 XP!</div>'}</div>
+    ${hintsUsed<maxHints?`<button class="btn btn-sm btn-secondary" onclick="revealHint()" style="margin-bottom:12px;">💡 힌트 보기 (현재 +${pts} XP)</button>`:''}
+    <input class="fill-input" id="hint-answer" type="text" placeholder="한국어로 입력..." autocomplete="off" onkeydown="if(event.key==='Enter')hintCheck()">
+    <button class="btn btn-primary btn-full" onclick="hintCheck()" style="margin-top:12px;">확인</button>
+    <div id="hint-feedback" style="margin-top:12px;"></div>
+  </div>`;
+  setTimeout(()=>{const inp=document.getElementById('hint-answer');if(inp)inp.focus();},100);
+}
+function revealHint(){
+  const s=hintState;if(!s)return;
+  const w=s.questions[s.current];
+  const maxHints=Math.min(3,Math.floor(w.korean.length/2));
+  if(s.hintsUsed<maxHints){s.hintsUsed++;renderHintQ();}
+}
+function hintCheck(){
+  const s=hintState;if(!s||s.checked)return;
+  const w=s.questions[s.current];
+  const answer=(document.getElementById('hint-answer').value||'').trim();
+  const fb=document.getElementById('hint-feedback');
+  if(!answer){showToast('답을 입력하세요!','error');return;}
+  s.checked=true;
+  const correct=answer===w.korean;
+  const pts=s.hintsUsed===0?15:s.hintsUsed===1?10:s.hintsUsed===2?7:5;
+  if(correct){s.score+=pts;addXP(pts);fb.innerHTML=`<p style="color:var(--accent);font-weight:700;">✅ 정답! +${pts} XP</p>`;}
+  else fb.innerHTML=`<p style="color:var(--danger);font-weight:700;">❌ 오답! 정답: ${esc(w.korean)}</p>`;
+  document.getElementById('hint-answer').disabled=true;
+  setTimeout(()=>{s.current++;s.hintsUsed=0;s.checked=false;renderHintQ();},1200);
+}
+function endHintGame(){
+  miniGameStats.hint.played++;
+  miniGameStats.hint.bestScore=Math.max(miniGameStats.hint.bestScore,hintState.score);
+  save(SK.miniGameStats,miniGameStats);
+  if(hintState.score>=hintState.total*10)addXP(20);
+  const c=document.getElementById('quiz-main');
+  c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+    <span style="font-size:48px;display:block;margin-bottom:12px;">💡</span>
+    <h3>힌트 게임 결과!</h3>
+    <div class="quiz-score">${hintState.score}</div>
+    <p style="color:var(--text-secondary);">${hintState.total}문제 완료!</p>
+    <p style="color:var(--text-secondary);font-size:13px;">최고 점수: ${miniGameStats.hint.bestScore}점</p>
+    <button class="btn btn-primary btn-full" onclick="hintState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
+  </div>`;
+  hintState=null;
+  uploadPlayerData();
+}
+
+// ==================== MINI-GAME: OX MARATHON ====================
+let oxState=null;
+function startOXMarathon(){
+  const pool=getAllQuizWords();
+  if(pool.length<4){showToast('최소 4개 단어 필요!','error');return;}
+  const questions=[];
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+  shuffled.forEach((w,i)=>{
+    const isCorrect=Math.random()>0.5;
+    if(isCorrect){
+      questions.push({word:w,displayed:w.korean,correct:true});
+    } else {
+      const other=pool.filter(x=>x.korean!==w.korean)[Math.floor(Math.random()*(pool.length-1))];
+      questions.push({word:w,displayed:other?other.korean:w.korean,correct:other?false:true});
+    }
+  });
+  oxState={questions,current:0,score:0,lives:3,answered:false};
+  renderOXQ();
+}
+function renderOXQ(){
+  const c=document.getElementById('quiz-main');const s=oxState;if(!s)return;
+  if(s.lives<=0||s.current>=s.questions.length){endOXMarathon();return;}
+  const q=s.questions[s.current];
+  c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitOXMarathon()" style="font-size:12px;">← 나가기</button>
+      <span style="font-size:16px;font-weight:700;">⭕ OX 마라톤</span>
+      <span style="font-size:14px;font-weight:700;color:var(--accent);">점수: ${s.score}</span>
+    </div>
+    <div style="font-size:18px;margin-bottom:4px;">${'❤️'.repeat(s.lives)}${'🖤'.repeat(3-s.lives)}</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">문제 ${s.current+1}</div>
+    <div class="quiz-word">${esc(q.word.vietnamese)}</div>
+    <div style="font-size:16px;margin:12px 0;">= <b>${esc(q.displayed)}</b></div>
+    <p style="font-size:14px;color:var(--text-secondary);">이 짝이 맞나요?</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+      <button class="btn" style="background:var(--accent);color:#fff;font-size:24px;padding:16px;" onclick="oxAnswer(true)">⭕</button>
+      <button class="btn" style="background:var(--danger);color:#fff;font-size:24px;padding:16px;" onclick="oxAnswer(false)">❌</button>
+    </div>
+    <div id="ox-feedback" style="margin-top:12px;min-height:24px;"></div>
+  </div>`;
+}
+function oxAnswer(userSaysCorrect){
+  const s=oxState;if(!s||s.answered)return;
+  s.answered=true;
+  const q=s.questions[s.current];
+  const isRight=userSaysCorrect===q.correct;
+  const fb=document.getElementById('ox-feedback');
+  if(isRight){s.score++;addXP(5);if(fb)fb.innerHTML=`<p style="color:var(--accent);font-weight:700;">✅ 정답!</p>`;}
+  else{s.lives--;if(fb)fb.innerHTML=`<p style="color:var(--danger);font-weight:700;">❌ 오답! 정답: ${esc(q.word.korean)}</p>`;}
+  setTimeout(()=>{if(!oxState)return;s.current++;s.answered=false;renderOXQ();},800);
+}
+function endOXMarathon(){
+  const s=oxState;if(!s)return;
+  miniGameStats.ox.played++;
+  miniGameStats.ox.bestScore=Math.max(miniGameStats.ox.bestScore,s.score);
+  save(SK.miniGameStats,miniGameStats);
+  if(s.score>=15)addXP(30);
+  else if(s.score>=8)addXP(15);
+  const c=document.getElementById('quiz-main');
+  c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+    <span style="font-size:48px;display:block;margin-bottom:12px;">${s.lives>0?'⭕':'😅'}</span>
+    <h3>OX 마라톤 결과!</h3>
+    <div class="quiz-score">${s.score}</div>
+    <p style="color:var(--text-secondary);">${s.current}문제 중 ${s.score}개 정답!</p>
+    <p style="color:var(--text-secondary);font-size:13px;">최고 기록: ${miniGameStats.ox.bestScore}개</p>
+    <button class="btn btn-primary btn-full" onclick="oxState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
+  </div>`;
+  oxState=null;
+  uploadPlayerData();
+}
+
+// ==================== MINI-GAME: SURVIVAL ====================
+let survivalState=null;
+function startSurvival(){
+  const pool=getAllQuizWords();
+  if(pool.length<4){showToast('최소 4개 단어 필요!','error');return;}
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+  survivalState={pool:shuffled,score:0,current:0,lives:3,answered:false};
+  renderSurvivalQ();
+}
+function renderSurvivalQ(){
+  const c=document.getElementById('quiz-main');const s=survivalState;if(!s)return;
+  if(s.lives<=0){endSurvival();return;}
+  if(s.current>=s.pool.length)s.current=0;
+  const w=s.pool[s.current];
+  const pool=getAllQuizWords();
+  const wrongs=pool.filter(x=>x.korean!==w.korean).sort(()=>Math.random()-.5).slice(0,3);
+  const options=[...wrongs.map(x=>x.korean),w.korean].sort(()=>Math.random()-.5);
+  s.answered=false;s._correct=w.korean;
+  c.innerHTML=`<div class="card" style="text-align:center;padding:20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <button class="btn btn-sm btn-secondary" onclick="exitSurvival()" style="font-size:12px;">← 나가기</button>
+      <span style="font-size:16px;font-weight:700;">🛡️ 서바이벌</span>
+      <span style="font-size:14px;font-weight:700;color:var(--accent);">점수: ${s.score}</span>
+    </div>
+    <div style="font-size:18px;margin-bottom:16px;">${'❤️'.repeat(s.lives)}${'🖤'.repeat(3-s.lives)}</div>
+    <div class="quiz-word">${esc(w.vietnamese)}</div>
+    <div class="quiz-options">
+      ${options.map((opt,i)=>`<button class="quiz-option" data-val="${esc(opt)}" onclick="answerSurvival(this)">${esc(opt)}</button>`).join('')}
+    </div>
+    <div id="survival-feedback" style="margin-top:8px;min-height:20px;"></div>
+  </div>`;
+}
+function answerSurvival(btn){
+  const s=survivalState;if(!s||s.answered)return;
+  s.answered=true;
+  const chosen=btn.dataset.val;
+  const isCorrect=chosen===s._correct;
+  const fb=document.getElementById('survival-feedback');
+  if(isCorrect){btn.classList.add('correct');s.score++;addXP(5);if(fb)fb.innerHTML='<p style="color:var(--accent);font-size:13px;">✅ 정답!</p>';}
+  else{btn.classList.add('wrong');s.lives--;if(fb)fb.innerHTML=`<p style="color:var(--danger);font-size:13px;">❌ 오답! 정답: ${esc(s._correct)}</p>`;}
+  setTimeout(()=>{if(!survivalState)return;s.current++;renderSurvivalQ();},600);
+}
+function endSurvival(){
+  const s=survivalState;if(!s)return;
+  miniGameStats.survival.played++;
+  miniGameStats.survival.bestScore=Math.max(miniGameStats.survival.bestScore,s.score);
+  save(SK.miniGameStats,miniGameStats);
+  if(s.score>=20)addXP(40);
+  else if(s.score>=10)addXP(20);
+  const c=document.getElementById('quiz-main');
+  c.innerHTML=`<div class="card" style="text-align:center;padding:24px;">
+    <span style="font-size:48px;display:block;margin-bottom:12px;">🛡️</span>
+    <h3>서바이벌 결과!</h3>
+    <div class="quiz-score">${s.score}</div>
+    <p style="color:var(--text-secondary);">${s.score}개 연속 정답!</p>
+    <p style="color:var(--text-secondary);font-size:13px;">최고 기록: ${miniGameStats.survival.bestScore}개</p>
+    <button class="btn btn-primary btn-full" onclick="survivalState=null;renderQuizMain();" style="margin-top:16px;">돌아가기</button>
+  </div>`;
+  survivalState=null;
   uploadPlayerData();
 }
 
@@ -3536,7 +3767,7 @@ function initApp(){
   appSettings=load(SK.settings)||{autoplay:false,quizSource:'all'};
   attendanceData=load(SK.attendance)||{streak:0,lastDate:null,totalDays:0,history:[]};
   xpData=load(SK.xp)||{total:0,level:0};
-  miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},match:{played:0,bestTime:999},fill:{played:0,correct:0,total:0}};
+  miniGameStats=load(SK.miniGameStats)||{speed:{played:0,bestScore:0},fill:{played:0,correct:0,total:0},chosung:{played:0,bestScore:0},hint:{played:0,bestScore:0},ox:{played:0,bestScore:0},survival:{played:0,bestScore:0}};
   partnerData=load(SK.partnerData)||null;
   const now=new Date();calYear=now.getFullYear();calMonth=now.getMonth();
   document.getElementById('exp-date').value=toDateStr(now);
